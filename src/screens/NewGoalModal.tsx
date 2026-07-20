@@ -50,7 +50,7 @@ export function NewGoalModal() {
             placeholderTextColor={C.faint}
             autoFocus
             style={{
-              fontFamily: 'Newsreader_400Regular_Italic',
+              fontFamily: 'Inter_400Regular_Italic',
               fontSize: 21,
               color: C.ink,
               borderBottomWidth: 1,

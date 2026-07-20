@@ -127,7 +127,7 @@ export function SundayReviewModal() {
             placeholder="What is this week remembered by?"
             placeholderTextColor={C.faint}
             style={{
-              fontFamily: 'Newsreader_400Regular_Italic',
+              fontFamily: 'Inter_400Regular_Italic',
               fontSize: 16.5,
               color: C.ink,
               borderBottomWidth: 1,

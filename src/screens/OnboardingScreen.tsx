@@ -80,7 +80,7 @@ export function OnboardingScreen() {
           <Stat label="PROXIMITY" value={fmt(preview.proxLeft)} />
         </View>
         <Serif size={15} italic color={C.muted}>
-          The grid redraws around you. Each box is one week of about 90 years.
+          The grid redraws around you. Each box is one week of about 80 years.
         </Serif>
 
         <View style={{ flex: 1, minHeight: 20 }} />

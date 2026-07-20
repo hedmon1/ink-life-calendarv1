@@ -88,7 +88,7 @@ export function MemoriesScreen() {
           onChangeText={setQuery}
           placeholder="Search a week number or word"
           placeholderTextColor={C.faint}
-          style={{ flex: 1, fontFamily: 'Newsreader_400Regular', fontSize: 16, color: C.ink, paddingVertical: 12 }}
+          style={{ flex: 1, fontFamily: 'Inter_400Regular', fontSize: 16, color: C.ink, paddingVertical: 12 }}
         />
         {query.length > 0 && (
           <Pressable onPress={() => setQuery('')} hitSlop={8}>

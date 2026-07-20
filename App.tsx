@@ -4,13 +4,13 @@ import {
   IBMPlexMono_500Medium,
 } from '@expo-google-fonts/ibm-plex-mono';
 import {
-  Newsreader_400Regular,
-  Newsreader_400Regular_Italic,
-  Newsreader_500Medium,
-  Newsreader_500Medium_Italic,
-  Newsreader_600SemiBold,
-  Newsreader_600SemiBold_Italic,
-} from '@expo-google-fonts/newsreader';
+  Inter_400Regular,
+  Inter_400Regular_Italic,
+  Inter_500Medium,
+  Inter_500Medium_Italic,
+  Inter_600SemiBold,
+  Inter_600SemiBold_Italic,
+} from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
@@ -38,12 +38,12 @@ function Root() {
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    Newsreader_400Regular,
-    Newsreader_400Regular_Italic,
-    Newsreader_500Medium,
-    Newsreader_500Medium_Italic,
-    Newsreader_600SemiBold,
-    Newsreader_600SemiBold_Italic,
+    Inter_400Regular,
+    Inter_400Regular_Italic,
+    Inter_500Medium,
+    Inter_500Medium_Italic,
+    Inter_600SemiBold,
+    Inter_600SemiBold_Italic,
     IBMPlexMono_400Regular,
     IBMPlexMono_500Medium,
   });
@@ -54,7 +54,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StoreProvider>
-          <StatusBar style="dark" />
+          <StatusBar style="light" />
           <Root />
         </StoreProvider>
       </SafeAreaProvider>

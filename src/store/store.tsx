@@ -6,7 +6,7 @@ import { ensureNotificationPermission, scheduleCheckinReminders, setupNotificati
 import { buildSeed } from './seed';
 import { AppState, Goal, WeekRecord } from './types';
 
-const STORAGE_KEY = 'ink.state.v6';
+const STORAGE_KEY = 'ink.state.v7';
 
 const DEFAULT_STATE: AppState = {
   birthYear: 1998,

@@ -63,7 +63,7 @@ export function OverlayToggle({
         backgroundColor: active ? color : 'transparent',
       }}
     >
-      <Swatch color={color} size={8} ring="rgba(27,23,16,0.3)" />
+      <Swatch color={color} size={8} ring="rgba(255,255,255,0.22)" />
       <Mono size={9.5} spacing={0.12} color={active ? C.paper : C.ink} medium>
         {label}
       </Mono>
@@ -97,7 +97,7 @@ export function ProgressStrip({
         const inked = recordWeeks != null && startWeek != null ? recordWeeks.has(weekIndex) : current === 0 ? true : idx < current;
         const style: ViewStyle = inked
           ? { backgroundColor: C.ink }
-          : { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.inputLine };
+          : { backgroundColor: 'transparent', borderWidth: 1, borderColor: C.inputLine };
         const base = { flex: 1, height, borderRadius: 4 } as const;
         const tappable = !!(onCellPress && startWeek != null && (!recordWeeks || recordWeeks.has(weekIndex)));
         if (tappable) {
@@ -114,7 +114,7 @@ export function DraftStrip({ weeks, height = 14 }: { weeks: number; height?: num
   return (
     <View style={{ flexDirection: 'row', gap: 3 }}>
       {Array.from({ length: weeks }).map((_, k) => (
-        <View key={k} style={{ flex: 1, height, borderRadius: 3, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.inputLine }} />
+        <View key={k} style={{ flex: 1, height, borderRadius: 3, backgroundColor: 'transparent', borderWidth: 1, borderColor: C.inputLine }} />
       ))}
     </View>
   );

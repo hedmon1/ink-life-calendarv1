@@ -1,8 +1,8 @@
 // Life-calendar math — mirrors the landing page calc() exactly.
 
 export const WEEKS_PER_YEAR = 52;
-export const LIFE_YEARS = 90;
-export const TOTAL_WEEKS = LIFE_YEARS * WEEKS_PER_YEAR; // 4,680
+export const LIFE_YEARS = 80;
+export const TOTAL_WEEKS = LIFE_YEARS * WEEKS_PER_YEAR; // 4,160
 export const PRIME_AGE = 35;
 export const PRIME_END = PRIME_AGE * WEEKS_PER_YEAR; // 1,820
 export const DEFAULT_PROXIMITY = 86;

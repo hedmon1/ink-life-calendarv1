@@ -5,10 +5,10 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "ink",
-    "userInterfaceStyle": "light",
-    "backgroundColor": "#F2EBDB",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#08090a",
     "splash": {
-      "backgroundColor": "#F2EBDB",
+      "backgroundColor": "#08090a",
       "resizeMode": "contain"
     },
     "assetBundlePatterns": [
@@ -39,7 +39,8 @@
         }
       ],
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      "@bacons/apple-targets"
     ]
   }
 }

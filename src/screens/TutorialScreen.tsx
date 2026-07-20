@@ -74,7 +74,7 @@ function MiniThisWeek() {
         1,461
       </Serif>
       <Serif size={13} italic color={C.muted} style={{ marginTop: 2, marginBottom: 12 }}>
-        of your 4,680 weeks.
+        of your 4,160 weeks.
       </Serif>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Swatch color={C.amber} size={9} />
@@ -180,7 +180,7 @@ const STEPS: Step[] = [
     visual: <MiniGrid />,
     kicker: 'THE GRID',
     title: 'Every box is one week.',
-    body: 'About 4,680 in a life. Black is inked and permanent; pale is pencil ahead. The outlined box is this week, the green one is where you started.',
+    body: 'About 4,160 in a life. Black is inked and permanent; pale is pencil ahead. The outlined box is this week, the green one is where you started.',
   },
   {
     visual: <MiniThisWeek />,
