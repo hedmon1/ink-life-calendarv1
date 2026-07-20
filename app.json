@@ -38,8 +38,7 @@
           "photosPermission": "Ink lets you attach one photo to the week you're locking into ink."
         }
       ],
-      "expo-font",
-      "expo-status-bar"
+      "expo-font"
     ]
   }
 }
