@@ -6,6 +6,12 @@ import { C, F } from '../theme';
 /** Width reserved on the left for the age labels. */
 export const GRID_LABEL_GUTTER = 24;
 
+// the grid is split into sub-grids: 13-week quarters across, decades down
+const QUARTER = 13;
+const DECADE = 10;
+export const BLOCK_GAP = 4; // extra gap between sub-grids (both axes)
+export const HBLOCKS = Math.floor((WEEKS_PER_YEAR - 1) / QUARTER); // inter-block gaps per row (3)
+
 const LABEL_STYLE = { fontFamily: F.mono, fontSize: 9, color: C.faint, letterSpacing: 0.5 } as const;
 
 type CellKind = 'ink' | 'inkStart' | 'thisWeek' | 'slate' | 'amber' | 'pencil';
@@ -55,15 +61,19 @@ function classify(i: number, p: LifeGridProps): CellKind {
 function LifeGridImpl(props: LifeGridProps) {
   const { width } = useWindowDimensions();
   const gap = props.gap ?? 1.4;
-  const auto = Math.max(4, Math.floor((Math.min(width, 460) - 44 - GRID_LABEL_GUTTER - (WEEKS_PER_YEAR - 1) * gap) / WEEKS_PER_YEAR));
+  const auto = Math.max(4, Math.floor((Math.min(width, 460) - 44 - GRID_LABEL_GUTTER - HBLOCKS * BLOCK_GAP - (WEEKS_PER_YEAR - 1) * gap) / WEEKS_PER_YEAR));
   const size = props.cell ?? auto;
   const { recordWeeks, onCellPress } = props;
   const years = TOTAL_WEEKS / WEEKS_PER_YEAR; // 80
-  const decadeGap = Math.max(5, Math.round(size * 1.4)); // separation between decades
 
+  // fixed-height gutter; the label is absolutely positioned so it never inflates the row
   const gutter = (label?: number) => (
-    <View style={{ width: GRID_LABEL_GUTTER, paddingRight: 6, alignItems: 'flex-end' }}>
-      {label != null ? <Text style={LABEL_STYLE}>{label}</Text> : null}
+    <View style={{ width: GRID_LABEL_GUTTER, height: size }}>
+      {label != null ? (
+        <Text style={[LABEL_STYLE, { position: 'absolute', right: 6, top: (size - 11) / 2 }]} numberOfLines={1}>
+          {label}
+        </Text>
+      ) : null}
     </View>
   );
 
@@ -78,7 +88,7 @@ function LifeGridImpl(props: LifeGridProps) {
           width: size,
           height: size,
           borderRadius: Math.max(1, size * 0.18),
-          marginRight: w === WEEKS_PER_YEAR - 1 ? 0 : gap,
+          marginRight: w === WEEKS_PER_YEAR - 1 ? 0 : (w + 1) % QUARTER === 0 ? BLOCK_GAP : gap,
         };
         const tappable = !!(recordWeeks && onCellPress && recordWeeks.has(i));
         if (tappable) {
@@ -87,9 +97,9 @@ function LifeGridImpl(props: LifeGridProps) {
           cells.push(<View key={w} style={[base, kindStyle(kind)]} />);
         }
       }
-      const decadeStart = y % 10 === 0;
+      const decadeStart = y % DECADE === 0;
       out.push(
-        <View key={y} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: gap, marginTop: decadeStart && y !== 0 ? decadeGap : 0 }}>
+        <View key={y} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: gap, marginTop: decadeStart && y !== 0 ? BLOCK_GAP : 0 }}>
           {gutter(decadeStart ? y : undefined)}
           {cells}
         </View>
@@ -97,13 +107,13 @@ function LifeGridImpl(props: LifeGridProps) {
     }
     // closing age label at the very bottom (e.g. 80)
     out.push(
-      <View key="end" style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+      <View key="end" style={{ flexDirection: 'row', alignItems: 'center' }}>
         {gutter(years)}
       </View>
     );
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size, gap, decadeGap, years, props.lived, props.prime, props.prox, props.proxLeft, props.primeEnd, props.installWeek, recordWeeks, onCellPress]);
+  }, [size, gap, years, props.lived, props.prime, props.prox, props.proxLeft, props.primeEnd, props.installWeek, recordWeeks, onCellPress]);
 
   return <View style={{ alignItems: 'flex-start' }}>{rows}</View>;
 }

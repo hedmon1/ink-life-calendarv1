@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useMemo, useState } from 'react';
 import { Alert, Image, Pressable, TextInput, View } from 'react-native';
+import { Card } from '../components/Bits';
 import { Screen } from '../components/Screen';
 import { Stars } from '../components/Stars';
 import { Mono, Serif } from '../components/Type';
@@ -51,20 +52,27 @@ export function MemoriesScreen() {
       <Serif size={30} weight="medium" style={{ marginBottom: 2 }}>
         Memories
       </Serif>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
-        <Serif size={15} italic color={C.muted} style={{ flex: 1 }}>
-          {photographed.length === 0
-            ? 'No weeks photographed yet. Lock one in your check-in.'
-            : `${fmt(photographed.length)} week${photographed.length === 1 ? '' : 's'} photographed so far.`}
-        </Serif>
-        {hasExamples && (
-          <Pressable onPress={confirmClear} hitSlop={8} style={{ borderWidth: 1, borderColor: C.inputLine, borderRadius: 6, paddingVertical: 7, paddingHorizontal: 11 }}>
-            <Mono size={8.5} spacing={0.14} color={C.muted}>
-              CLEAR EXAMPLES
+      <Serif size={15} italic color={C.muted} style={{ marginBottom: 14 }}>
+        {photographed.length === 0
+          ? 'Nothing photographed yet.'
+          : `${fmt(photographed.length)} week${photographed.length === 1 ? '' : 's'} photographed.`}
+      </Serif>
+
+      {hasExamples && (
+        <Card style={{ borderColor: C.amber, marginBottom: 14, padding: 14 }}>
+          <Mono size={9} spacing={0.18} color={C.amber} style={{ marginBottom: 4 }}>
+            EXAMPLE MEMORIES
+          </Mono>
+          <Serif size={14.5} italic color={C.muted} style={{ marginBottom: 12 }}>
+            Yours replace these.
+          </Serif>
+          <Pressable onPress={confirmClear} style={{ backgroundColor: C.ink, borderRadius: 8, paddingVertical: 12, alignItems: 'center' }}>
+            <Mono size={9.5} spacing={0.16} color={C.paper}>
+              REMOVE EXAMPLES
             </Mono>
           </Pressable>
-        )}
-      </View>
+        </Card>
+      )}
 
       {/* search */}
       <View
@@ -86,7 +94,7 @@ export function MemoriesScreen() {
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Search a week number or word"
+          placeholder="Week number or word"
           placeholderTextColor={C.faint}
           style={{ flex: 1, fontFamily: 'Inter_400Regular', fontSize: 16, color: C.ink, paddingVertical: 12 }}
         />
@@ -107,7 +115,7 @@ export function MemoriesScreen() {
 
       {filtered.length === 0 ? (
         <Serif size={16} italic color={C.muted} style={{ paddingVertical: 24 }}>
-          {q.length > 0 ? `No inked week matches “${query.trim()}”.` : 'Nothing here yet.'}
+          {q.length > 0 ? `No match for “${query.trim()}”.` : 'Nothing here yet.'}
         </Serif>
       ) : (
         <>

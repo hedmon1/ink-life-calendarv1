@@ -1,4 +1,4 @@
-export type GoalPhase = 'penciled' | 'active' | 'finished';
+export type GoalPhase = 'active' | 'done' | 'missed';
 
 export type Goal = {
   id: string;
@@ -7,11 +7,9 @@ export type Goal = {
   weeks: number;
   /** absolute (0-based) week index the goal starts on */
   startWeek: number;
-  /** fulfillment ratings collected as each goal week locks */
-  ratings: number[];
+  /** set when the user marks it done; unset goals expire to 'missed' when time runs out */
+  outcome?: 'done' | 'missed';
   createdAt: number;
-  /** true for the demo goal seeded on first run */
-  seed?: boolean;
 };
 
 export type WeekRecord = {

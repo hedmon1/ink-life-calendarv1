@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Image, Pressable, ScrollView, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ProgressStrip, Swatch } from '../components/Bits';
+import { Swatch } from '../components/Bits';
 import { ProgressBar } from '../components/ProgressBar';
 import { Stars } from '../components/Stars';
 import { Mono, Serif } from '../components/Type';
@@ -100,7 +100,7 @@ function MiniMemories() {
     <View style={{ width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
       {items.map(([seed, wk, r]) => (
         <View key={seed} style={{ width: '48%', marginBottom: 8, backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 10, overflow: 'hidden' }}>
-          <Image source={{ uri: picsum(seed, 400, 240) }} style={{ width: '100%', height: 52, backgroundColor: C.pencil }} />
+          <Image source={{ uri: picsum(seed, 160, 96) }} style={{ width: '100%', height: 52, backgroundColor: C.pencil }} />
           <View style={{ paddingHorizontal: 8, paddingVertical: 5, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Mono size={7.5} spacing={0.1} color={C.muted}>
               WK {wk}
@@ -118,16 +118,16 @@ function MiniGoal() {
     <View style={{ width: '100%', backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 12, padding: 14 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
         <Mono size={8.5} spacing={0.16} color={C.muted}>
-          ACTIVE GOAL
+          GOAL
         </Mono>
         <Mono size={8.5} spacing={0.12} color={C.amber}>
-          WK 6 / 8
+          WEEK 6 OF 8
         </Mono>
       </View>
-      <Serif size={17} weight="medium" color={C.ink} style={{ marginBottom: 10 }}>
+      <Serif size={17} weight="medium" color={C.ink} style={{ marginBottom: 12 }}>
         Launch the company
       </Serif>
-      <ProgressStrip weeks={8} current={6} height={14} />
+      <ProgressBar pct={0.75} color={C.amber} />
     </View>
   );
 }
@@ -135,7 +135,7 @@ function MiniGoal() {
 function MiniCheckin() {
   return (
     <View style={{ width: '100%', backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 12, padding: 14, gap: 11 }}>
-      <Image source={{ uri: picsum('ink42', 600, 300) }} style={{ width: '100%', height: 80, borderRadius: 8, backgroundColor: C.pencil }} />
+      <Image source={{ uri: picsum('ink42', 240, 120) }} style={{ width: '100%', height: 80, borderRadius: 8, backgroundColor: C.pencil }} />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Mono size={8.5} spacing={0.16} color={C.muted}>
           FULFILLMENT
@@ -157,7 +157,7 @@ function MiniCheckin() {
 function MiniDetail() {
   return (
     <View style={{ width: '100%', backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 12, overflow: 'hidden' }}>
-      <Image source={{ uri: picsum('ink42', 600, 360) }} style={{ width: '100%', height: 104, backgroundColor: C.pencil }} />
+      <Image source={{ uri: picsum('ink42', 240, 144) }} style={{ width: '100%', height: 104, backgroundColor: C.pencil }} />
       <View style={{ padding: 12 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <Mono size={8.5} spacing={0.16} color={C.muted}>
@@ -180,43 +180,43 @@ const STEPS: Step[] = [
     visual: <MiniGrid />,
     kicker: 'THE GRID',
     title: 'Every box is one week.',
-    body: 'About 4,160 in a life. Black is inked and permanent; pale is pencil ahead. The outlined box is this week, the green one is where you started.',
+    body: 'About 4,160 in a life. Black is inked, pale is pencil — green is where you started.',
   },
   {
     visual: <MiniThisWeek />,
     kicker: 'THIS WEEK',
     title: 'Your week, at a glance.',
-    body: 'Your daily anchor: the week you’re living, how many remain, and how much of each window you’ve spent.',
+    body: 'The week you’re living, and what’s left of each window.',
   },
   {
     visual: <MiniWindows />,
     kicker: 'THE WINDOWS',
     title: 'Two windows are closing.',
-    body: 'Prime (amber) closes around 35. Proximity (slate) is the weeks left near your people. Tap either, or shade them onto the grid.',
+    body: 'Prime (amber) closes around 35. Proximity (slate) is the weeks left near your people.',
   },
   {
     visual: <MiniGoal />,
     kicker: 'GOALS',
-    title: 'Set goals in weeks.',
-    body: 'Name a goal, give it weeks — it starts now. Keep one at a time; the tab remembers every week it ran.',
+    title: 'One goal at a time.',
+    body: 'Set it in weeks. The bar fills as they pass — mark it done before it runs out.',
   },
   {
     visual: <MiniCheckin />,
     kicker: 'THE CHECK-IN',
     title: 'Check in once a week.',
-    body: 'A photo, a rating, a sentence — and a nudge to reflect on your goal. It locks into ink and sets your check-in day.',
+    body: 'A photo, a rating, one sentence. It locks into ink and sets your check-in day.',
   },
   {
     visual: <MiniMemories />,
     kicker: 'MEMORIES',
     title: 'Every photo, kept.',
-    body: 'Each photographed week, gathered in one place — scroll it, or search by week or word.',
+    body: 'Each photographed week in one place — search by week or word.',
   },
   {
     visual: <MiniDetail />,
     kicker: 'LOOK BACK',
     title: 'Ink is ink.',
-    body: 'Tap any inked week to reopen its photo and sentence. Nothing is edited or deleted.',
+    body: 'Tap any inked week to reopen it. No edits, no deletions.',
   },
 ];
 

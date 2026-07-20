@@ -22,7 +22,7 @@ export function WeekDetailModal() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 22, paddingBottom: insets.bottom + 24 }} showsVerticalScrollIndicator={false}>
         {!rec ? (
           <Serif size={17} italic color={C.muted} style={{ paddingVertical: 30, textAlign: 'center' }}>
-            This week is still pencil. Nothing inked yet.
+            Still pencil.
           </Serif>
         ) : (
           <>
@@ -53,7 +53,7 @@ export function WeekDetailModal() {
             </Serif>
 
             <Mono size={8} spacing={0.16} color={C.faint}>
-              INK · NO EDITS, NO DELETIONS
+              INK IS INK. NO EDITS.
             </Mono>
           </>
         )}

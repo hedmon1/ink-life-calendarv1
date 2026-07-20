@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { AppState } from '../store/types';
 import { lifeCalc } from './calc';
+import { checkinStreak } from './streak';
 
 const CHANNEL_ID = 'checkin';
 
@@ -91,7 +92,11 @@ export async function scheduleCheckinReminders(state: AppState): Promise<void> {
     const now = new Date();
     const channelId = Platform.OS === 'android' ? CHANNEL_ID : undefined;
 
-    for (const t of [MORNING, NOON]) {
+    // a live streak makes the morning reminder personal
+    const streak = checkinStreak(state.records, c.lived);
+    const morning = streak >= 2 ? { ...MORNING, body: `Don't break ${streak} weeks of ink.` } : MORNING;
+
+    for (const t of [morning, NOON]) {
       const date = nextAt(state.checkinWeekday, t.hour, t.minute, currentWeekLocked, now);
       await Notifications.scheduleNotificationAsync({
         content: { title: t.title, body: t.body, sound: true },

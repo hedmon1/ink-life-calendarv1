@@ -3,7 +3,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { OverlayToggle, Swatch } from '../components/Bits';
-import { GRID_LABEL_GUTTER, LifeGrid } from '../components/LifeGrid';
+import { BLOCK_GAP, GRID_LABEL_GUTTER, HBLOCKS, LifeGrid } from '../components/LifeGrid';
 import { Screen } from '../components/Screen';
 import { Mono, Serif } from '../components/Type';
 import { fmt, WEEKS_PER_YEAR } from '../lib/calc';
@@ -24,7 +24,7 @@ export function GridScreen() {
   // always open the grid at the full 1× overview, even after a previous zoom
   useFocusEffect(useCallback(() => setZoom(1), []));
 
-  const baseCell = Math.max(4, Math.floor((Math.min(width, 460) - 44 - GRID_LABEL_GUTTER - (WEEKS_PER_YEAR - 1) * GAP) / WEEKS_PER_YEAR));
+  const baseCell = Math.max(4, Math.floor((Math.min(width, 460) - 44 - GRID_LABEL_GUTTER - HBLOCKS * BLOCK_GAP - (WEEKS_PER_YEAR - 1) * GAP) / WEEKS_PER_YEAR));
   const cell = baseCell * zoom;
 
   const recordWeeks = useMemo(() => new Set(state.records.map((r) => r.weekIndex)), [state.records]);
@@ -52,13 +52,10 @@ export function GridScreen() {
         The Grid
       </Serif>
 
-      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
         <OverlayToggle active={state.overlays.prime} color={C.amber} label={`PRIME · ${fmt(calc.primeLeft)}`} onPress={() => toggleOverlay('prime')} />
         <OverlayToggle active={state.overlays.prox} color={C.slate} label={`PROX · ${fmt(calc.proxLeft)}`} onPress={() => toggleOverlay('prox')} />
       </View>
-      <Mono size={9} spacing={0.12} color={C.muted} style={{ marginBottom: 14 }}>
-        TAP EACH TO SHADE ITS WINDOW ON THE GRID
-      </Mono>
 
       {/* zoom controls */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -91,7 +88,7 @@ export function GridScreen() {
       </View>
 
       <Mono size={9.5} spacing={0.16} color={C.faint} style={{ textAlign: 'center', marginTop: 18 }}>
-        80 YEARS × 52 WEEKS · EACH BOX IS ONE WEEK
+        80 YEARS × 52 WEEKS
       </Mono>
     </Screen>
   );

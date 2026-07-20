@@ -6,7 +6,7 @@ import { ensureNotificationPermission, scheduleCheckinReminders, setupNotificati
 import { buildSeed } from './seed';
 import { AppState, Goal, WeekRecord } from './types';
 
-const STORAGE_KEY = 'ink.state.v7';
+const STORAGE_KEY = 'ink.state.v8';
 
 const DEFAULT_STATE: AppState = {
   birthYear: 1998,
@@ -31,6 +31,7 @@ type Store = {
   markTutorialSeen: () => void;
   toggleOverlay: (key: 'prime' | 'prox') => void;
   addGoal: (input: { name: string; weeks: number }) => void;
+  completeGoal: (id: string) => void;
   deleteGoal: (id: string) => void;
   lockCurrentWeek: (input: { sentence: string; rating: number; photos: string[] }) => void;
   clearExampleMemories: () => void;
@@ -119,13 +120,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const goal: Goal = {
         id: `g-${Date.now()}`,
         name: input.name.trim(),
-        weeks: Math.max(1, Math.min(52, Math.round(input.weeks))),
+        weeks: Math.max(1, Math.min(26, Math.round(input.weeks))),
         startWeek: c.lived, // starts immediately — active this week
-        ratings: [],
         createdAt: Date.now(),
       };
       return { ...s, goals: [goal, ...s.goals] };
     });
+  }, []);
+
+  const completeGoal = useCallback((id: string) => {
+    setState((s) => ({ ...s, goals: s.goals.map((g) => (g.id === id ? { ...g, outcome: 'done' as const } : g)) }));
   }, []);
 
   const deleteGoal = useCallback((id: string) => {
@@ -143,27 +147,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setState((s) => {
       const c = lifeCalc(s.birthYear, s.proximityWeeks);
       const weekIndex = c.lived;
-      // which active goal (if any) owns this week
+      // tag the record with the active goal (if any) so WeekDetail can show it
       const owning = s.goals.find((g) => goalPhase(g, c.lived) === 'active');
-      const goalId = owning?.id;
 
       const record: WeekRecord = {
         weekIndex,
         sentence: input.sentence.trim(),
         rating: input.rating,
         photos: input.photos.slice(0, 3),
-        goalId,
+        goalId: owning?.id,
         lockedAt: Date.now(),
       };
       const records = [...s.records.filter((r) => r.weekIndex !== weekIndex), record];
 
-      let goals = s.goals;
-      if (owning) {
-        goals = s.goals.map((g) => (g.id === owning.id ? { ...g, ratings: [...g.ratings, input.rating] } : g));
-      }
       // first check-in fixes the user's weekday; later ones reuse it
       const checkinWeekday = s.checkinWeekday ?? new Date().getDay();
-      return { ...s, records, goals, checkinWeekday, lastCheckinAt: Date.now() };
+      return { ...s, records, checkinWeekday, lastCheckinAt: Date.now() };
     });
     // ask for notification permission on the first check-in, then (re)schedule reminders
     ensureNotificationPermission().then((granted) => {
@@ -194,6 +193,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     markTutorialSeen,
     toggleOverlay,
     addGoal,
+    completeGoal,
     deleteGoal,
     lockCurrentWeek,
     clearExampleMemories,

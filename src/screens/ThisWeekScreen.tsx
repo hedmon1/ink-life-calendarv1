@@ -1,15 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Pressable, View } from 'react-native';
-import { Card, ProgressStrip, Swatch } from '../components/Bits';
+import { Image, Pressable, View } from 'react-native';
+import { Card, Swatch } from '../components/Bits';
 import { CheckIcon, InfoIcon, LockIcon } from '../components/Icons';
 import { ProgressBar } from '../components/ProgressBar';
 import { Screen } from '../components/Screen';
 import { Mono, Serif } from '../components/Type';
 import { fmt, todayLabel } from '../lib/calc';
 import { checkinInfo } from '../lib/checkin';
-import { goalCurrentWeek, isGoalFinalWeek } from '../lib/goals';
+import { goalCurrentWeek, goalProgress } from '../lib/goals';
+import { checkinStreak } from '../lib/streak';
 import { RootStackParamList } from '../navigation/types';
 import { useStore } from '../store/store';
 import { C } from '../theme';
@@ -20,7 +21,16 @@ export function ThisWeekScreen() {
   const goal = activeGoal();
   const locked = recordFor(calc.lived);
   const ci = checkinInfo(state.checkinWeekday, !!locked);
-  const recordWeeks = useMemo(() => new Set(state.records.map((r) => r.weekIndex)), [state.records]);
+  const streak = useMemo(() => checkinStreak(state.records, calc.lived), [state.records, calc.lived]);
+
+  // a look back: this week one year ago, or the oldest photographed week ≥ 26 weeks out
+  const memory = useMemo(() => {
+    const own = state.records.filter((r) => !r.seed && r.photos.length > 0);
+    return (
+      own.find((r) => r.weekIndex === calc.lived - 52) ??
+      own.filter((r) => calc.lived - r.weekIndex >= 26).sort((a, b) => a.weekIndex - b.weekIndex)[0]
+    );
+  }, [state.records, calc.lived]);
 
   // show the brief tutorial once, right after onboarding
   const tutorialShown = useRef(false);
@@ -41,9 +51,8 @@ export function ThisWeekScreen() {
       accent: C.amber,
       stat: fmt(calc.primeLeft),
       statUnit: 'weeks left',
-      body:
-        'The weeks your body still says yes — the high-risk startup, the grueling race, the move across the world. For most people this window closes around age 35. After it, the big physical bets get far more expensive.',
-      note: `PRIME ENDS AT AGE 35 · ${fmt(calc.primeEnd)} WEEKS TOTAL.\nYOU'VE SPENT ${Math.round(primePct * 100)}% OF IT.`,
+      body: 'The weeks your body still says yes — the risky startup, the hard race, the move abroad. For most people it closes around 35.',
+      note: `PRIME ENDS AT AGE 35 · ${fmt(calc.primeEnd)} WEEKS TOTAL`,
     });
 
   const openProxInfo = () =>
@@ -52,9 +61,8 @@ export function ThisWeekScreen() {
       accent: C.slate,
       stat: fmt(calc.proxLeft),
       statUnit: 'weeks left',
-      body:
-        "The weeks you'll still live near your people — before a career move, a marriage, or the next chapter scatters everyone. It is almost always shorter than you think, so spend it on purpose.",
-      note: `AN ESTIMATE OF HIGH-FREQUENCY TIME LEFT WITH FAMILY · CAPPED AT ${fmt(state.proximityWeeks)} WEEKS.`,
+      body: 'The weeks you still live near your people, before the next chapter scatters everyone. Almost always shorter than you think.',
+      note: `AN ESTIMATE · CAPPED AT ${fmt(state.proximityWeeks)} WEEKS`,
     });
 
   return (
@@ -80,9 +88,16 @@ export function ThisWeekScreen() {
         </View>
       </View>
 
-      <Mono size={10} spacing={0.22} style={{ marginBottom: 6 }}>
-        YOU ARE LIVING WEEK
-      </Mono>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <Mono size={10} spacing={0.22}>
+          YOU ARE LIVING WEEK
+        </Mono>
+        {streak >= 2 && (
+          <Mono size={9} spacing={0.14} color={C.amber}>
+            {streak} WKS IN INK
+          </Mono>
+        )}
+      </View>
       <Serif size={64} weight="medium" style={{ lineHeight: 66 }}>
         {fmt(calc.weekNumber)}
       </Serif>
@@ -104,7 +119,7 @@ export function ThisWeekScreen() {
         <Card style={{ padding: 18 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
             <Mono size={9.5} spacing={0.18} color={C.muted}>
-              ACTIVE GOAL{goal.seed ? ' · EXAMPLE' : ''}
+              GOAL
             </Mono>
             <Mono size={9.5} spacing={0.14} color={C.amber}>
               WEEK {goalCurrentWeek(goal, calc.lived)} OF {goal.weeks}
@@ -113,22 +128,31 @@ export function ThisWeekScreen() {
           <Serif size={21} weight="medium" color={C.ink} style={{ marginBottom: 14 }}>
             {goal.name}
           </Serif>
-          <ProgressStrip weeks={goal.weeks} current={goalCurrentWeek(goal, calc.lived)} startWeek={goal.startWeek} recordWeeks={recordWeeks} height={20} />
-          <Serif size={14} italic color={C.muted} style={{ marginTop: 12 }}>
-            {isGoalFinalWeek(goal, calc.lived)
-              ? "Final week. Your next review will ask you to reflect on the whole goal."
-              : `${goal.weeks - goalCurrentWeek(goal, calc.lived)} weeks of pencil left before this inks.`}
-          </Serif>
+          <ProgressBar pct={goalProgress(goal, calc.lived)} color={C.amber} />
         </Card>
       ) : (
         <Card style={{ borderStyle: 'dashed', borderColor: C.inputLine, borderWidth: 1.5 }}>
-          <Mono size={9.5} spacing={0.18} style={{ marginBottom: 8 }}>
+          <Mono size={9.5} spacing={0.18} color={C.muted}>
             NO ACTIVE GOAL
           </Mono>
-          <Serif size={17} italic color={C.muted}>
-            Nothing penciled in. Open Goals to draft one against a real window.
-          </Serif>
         </Card>
+      )}
+
+      {/* a memory resurfaces */}
+      {memory && (
+        <Pressable onPress={() => nav.navigate('WeekDetail', { weekIndex: memory.weekIndex })} style={{ marginTop: 12 }}>
+          <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 }}>
+            <Image source={{ uri: memory.photos[0] }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.pencil }} />
+            <View style={{ flex: 1 }}>
+              <Mono size={8.5} spacing={0.16} color={C.muted} style={{ marginBottom: 3 }}>
+                {memory.weekIndex === calc.lived - 52 ? 'ONE YEAR AGO' : `FROM WEEK ${fmt(memory.weekIndex + 1)}`}
+              </Mono>
+              <Serif size={14} italic numberOfLines={1}>
+                “{memory.sentence}”
+              </Serif>
+            </View>
+          </Card>
+        </Pressable>
       )}
     </Screen>
   );
@@ -180,9 +204,7 @@ function CheckinBlock({
               </Mono>
             </View>
             <Serif size={15} italic color={C.paper}>
-              {ci.firstEver
-                ? 'Lock this week into ink. It sets your weekly check-in day.'
-                : 'It’s your day. Lock this week into ink.'}
+              {ci.firstEver ? 'Sets your weekly check-in day.' : 'Lock this week into ink.'}
             </Serif>
           </View>
           <Serif size={26} color={C.paper}>
@@ -203,7 +225,7 @@ function CheckinBlock({
         </Mono>
       </View>
       <Serif size={15} italic color={C.muted}>
-        Come back on {ci.weekdayName} to lock this week into ink. The grid waits for no one.
+        Come back {ci.weekdayName} to ink this week.
       </Serif>
     </View>
   );

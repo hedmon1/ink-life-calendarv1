@@ -3,7 +3,6 @@ import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DraftStrip } from '../components/Bits';
 import { ModalShell } from '../components/ModalShell';
 import { Mono, Serif } from '../components/Type';
 import { useStore } from '../store/store';
@@ -33,11 +32,8 @@ export function NewGoalModal() {
     <ModalShell title="NEW GOAL" closeLabel="CANCEL">
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={8}>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 22, paddingBottom: insets.bottom + 24 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          <Serif size={28} weight="medium" style={{ marginBottom: 6 }}>
+          <Serif size={28} weight="medium" style={{ marginBottom: 24 }}>
             Name your goal.
-          </Serif>
-          <Serif size={15} italic color={C.muted} style={{ marginBottom: 24 }}>
-            One real thing, with a hard time frame.
           </Serif>
 
           <Mono size={9.5} spacing={0.18} style={{ marginBottom: 8 }}>
@@ -73,14 +69,9 @@ export function NewGoalModal() {
             </View>
           </View>
 
-          <View style={{ marginBottom: 14 }}>
-            <DraftStrip weeks={weeks} />
-          </View>
-
-          <Serif size={14.5} italic color={C.muted} style={{ marginBottom: 24 }}>
-            Starts now — it becomes your active goal.{' '}
-            {allInPrime ? `All ${weeks} weeks land inside your prime window.` : `${inPrime} of ${weeks} weeks land inside your prime window.`}
-          </Serif>
+          <Mono size={9} spacing={0.14} color={C.muted} style={{ marginBottom: 26 }}>
+            STARTS NOW · {allInPrime ? `ALL ${weeks}` : `${inPrime} OF ${weeks}`} WKS IN PRIME
+          </Mono>
 
           <Pressable onPress={create} style={{ backgroundColor: name.trim() ? C.ink : C.inputLine, borderRadius: 8, paddingVertical: 16, alignItems: 'center' }}>
             <Mono size={11} spacing={0.18} color={C.paper}>
