@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { InputAccessoryView, Keyboard, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, InputAccessoryView, Keyboard, KeyboardEvent, Platform, Pressable, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mono, Serif } from '../components/Type';
 import { clampBirthYear, fmt, lifeCalc } from '../lib/calc';
@@ -15,18 +15,32 @@ export function OnboardingScreen() {
 
   const preview = lifeCalc(Number(year) || 1998);
 
+  // Slide the bottom button up in sync with the iOS keyboard so it's always reachable.
+  const restPad = insets.bottom + 18;
+  const pad = useRef(new Animated.Value(restPad)).current;
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return; // Android resizes the window automatically
+    const show = (e: KeyboardEvent) =>
+      Animated.timing(pad, { toValue: e.endCoordinates.height + 16, duration: e.duration || 250, useNativeDriver: false }).start();
+    const hide = (e: KeyboardEvent) =>
+      Animated.timing(pad, { toValue: restPad, duration: e.duration || 250, useNativeDriver: false }).start();
+    const s = Keyboard.addListener('keyboardWillShow', show);
+    const h = Keyboard.addListener('keyboardWillHide', hide);
+    return () => {
+      s.remove();
+      h.remove();
+    };
+  }, [pad, restPad]);
+
   const submit = () => {
     Keyboard.dismiss();
     completeOnboarding(clampBirthYear(Number(year) || 1998));
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <Animated.View style={{ flex: 1, backgroundColor: C.bg, paddingBottom: pad }}>
       {/* tap anywhere on the background to close the keyboard */}
-      <Pressable
-        onPress={Keyboard.dismiss}
-        style={{ flex: 1, paddingTop: insets.top + 40, paddingHorizontal: 28, paddingBottom: insets.bottom + 18 }}
-      >
+      <Pressable onPress={Keyboard.dismiss} style={{ flex: 1, paddingTop: insets.top + 40, paddingHorizontal: 28 }}>
         <Mono size={11} spacing={0.24} style={{ marginBottom: 22 }}>
           A LIFE CALENDAR IN TWO LAYERS
         </Mono>
@@ -101,7 +115,7 @@ export function OnboardingScreen() {
           </View>
         </InputAccessoryView>
       )}
-    </KeyboardAvoidingView>
+    </Animated.View>
   );
 }
 
