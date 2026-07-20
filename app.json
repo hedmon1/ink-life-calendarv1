@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Ink",
+    "slug": "ink",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "ink",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F2EBDB",
+    "splash": {
+      "backgroundColor": "#F2EBDB",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ink.lifecalendar",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Ink lets you attach one photo to the week you're locking into ink."
+      }
+    },
+    "android": {
+      "package": "com.ink.lifecalendar"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Ink lets you attach one photo to the week you're locking into ink."
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}

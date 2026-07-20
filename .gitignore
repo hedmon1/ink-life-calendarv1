@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+
+# expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+ios/
+android/
+
+# secrets / env (defensive — none are used in this project)
+.env
+.env.*
+*.local
+google-services.json
+GoogleService-Info.plist
+
+# editor / tooling
+.claude/
+.vscode/
+.idea/
+*.tsbuildinfo
+
+# logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
