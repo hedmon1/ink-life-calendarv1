@@ -71,17 +71,24 @@ export function OverlayToggle({
   );
 }
 
-/** Row of goal-week cells. `current` is 1-based; cells before it are inked, it is the dashed draft, the rest upcoming. */
+/** Row of goal-week cells. `current` is 1-based; cells before it are inked, it is the dashed draft, the rest upcoming.
+ * When `startWeek` + `onCellPress` are given, inked weeks that have a record become tappable. */
 export function ProgressStrip({
   weeks,
   current,
   variant = 'light',
   height = 18,
+  startWeek,
+  recordWeeks,
+  onCellPress,
 }: {
   weeks: number;
   current: number; // 0 = none in progress (all done)
   variant?: 'dark' | 'light';
   height?: number;
+  startWeek?: number;
+  recordWeeks?: Set<number>;
+  onCellPress?: (weekIndex: number) => void;
 }) {
   return (
     <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -99,7 +106,13 @@ export function ProgressStrip({
           else if (done) style = { backgroundColor: C.ink, borderWidth: 1.5, borderColor: C.amber };
           else style = { backgroundColor: C.pencil, borderWidth: 1.5, borderColor: C.pencilBorder };
         }
-        return <View key={k} style={[{ flex: 1, height, borderRadius: 4 }, style]} />;
+        const base = { flex: 1, height, borderRadius: 4 } as const;
+        const weekIndex = startWeek != null ? startWeek + k : -1;
+        const tappable = !!(onCellPress && startWeek != null && (!recordWeeks || recordWeeks.has(weekIndex)));
+        if (tappable) {
+          return <Pressable key={k} hitSlop={6} onPress={() => onCellPress!(weekIndex)} style={[base, style]} />;
+        }
+        return <View key={k} style={[base, style]} />;
       })}
     </View>
   );

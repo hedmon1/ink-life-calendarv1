@@ -71,6 +71,12 @@ export function todayLabel(now: number = Date.now()): string {
   return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
+/** Short date label like "JUN 16". */
+export function shortDate(ts: number): string {
+  const d = new Date(ts);
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
 /** Calendar range for a given absolute week index, e.g. "JUN 1 – JUN 7, 2026". */
 export function weekDateRange(birthYear: number, weekIndex: number): string {
   const by = clampBirthYear(birthYear);

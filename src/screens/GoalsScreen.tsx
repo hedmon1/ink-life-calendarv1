@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
+import React, { useMemo, useState } from 'react';
+import { Pressable, TextInput, View } from 'react-native';
 import { Card, DraftStrip, ProgressStrip } from '../components/Bits';
 import { Screen } from '../components/Screen';
-import { Mono, Serif } from '../components/Type';
 import { Stars } from '../components/Stars';
-import { fmt } from '../lib/calc';
+import { Mono, Serif } from '../components/Type';
+import { fmt, shortDate } from '../lib/calc';
+import { checkinInfo } from '../lib/checkin';
 import { goalAvg, goalCurrentWeek, goalPhase, goalWeekRange } from '../lib/goals';
+import { RootStackParamList } from '../navigation/types';
 import { useStore } from '../store/store';
 import { C } from '../theme';
 import { Goal } from '../store/types';
@@ -15,13 +19,21 @@ const MIN_W = 1;
 const MAX_W = 26;
 
 export function GoalsScreen() {
-  const { calc, state, addGoal } = useStore();
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { calc, state, addGoal, recordFor } = useStore();
   const [name, setName] = useState('');
   const [weeks, setWeeks] = useState(12);
 
   const start = calc.lived + 1;
   const inPrime = Math.max(0, Math.min(weeks, calc.primeEnd - start));
   const allInPrime = inPrime >= weeks;
+
+  // a new goal begins the day after the next check-in
+  const ci = checkinInfo(state.checkinWeekday, !!recordFor(calc.lived));
+  const startLabel = shortDate(Date.now() + (ci.daysUntil + 1) * 86400000);
+
+  const recordWeeks = useMemo(() => new Set(state.records.map((r) => r.weekIndex)), [state.records]);
+  const openWeek = (weekIndex: number) => nav.navigate('WeekDetail', { weekIndex });
 
   const pencilIn = () => {
     if (!name.trim()) return;
@@ -31,7 +43,6 @@ export function GoalsScreen() {
     setWeeks(12);
   };
 
-  // order: active → penciled → finished
   const order: Record<string, number> = { active: 0, penciled: 1, finished: 2 };
   const goals = [...state.goals].sort((a, b) => order[goalPhase(a, calc.lived)] - order[goalPhase(b, calc.lived)]);
 
@@ -86,19 +97,11 @@ export function GoalsScreen() {
         </View>
 
         <Serif size={14} italic color={C.muted} style={{ marginBottom: 14 }}>
-          Starts Monday.{' '}
+          Starts {startLabel}, the day after your next check-in.{' '}
           {allInPrime ? `All ${weeks} weeks land inside your prime window.` : `${inPrime} of ${weeks} weeks land inside your prime window.`}
         </Serif>
 
-        <Pressable
-          onPress={pencilIn}
-          style={{
-            backgroundColor: name.trim() ? C.ink : C.inputLine,
-            borderRadius: 6,
-            paddingVertical: 14,
-            alignItems: 'center',
-          }}
-        >
+        <Pressable onPress={pencilIn} style={{ backgroundColor: name.trim() ? C.ink : C.inputLine, borderRadius: 6, paddingVertical: 14, alignItems: 'center' }}>
           <Mono size={10} spacing={0.18} color={C.paper}>
             PENCIL IT IN
           </Mono>
@@ -107,7 +110,7 @@ export function GoalsScreen() {
 
       {/* goal list */}
       {goals.map((g) => (
-        <GoalRow key={g.id} goal={g} lived={calc.lived} />
+        <GoalRow key={g.id} goal={g} lived={calc.lived} recordWeeks={recordWeeks} onOpenWeek={openWeek} />
       ))}
     </Screen>
   );
@@ -115,10 +118,7 @@ export function GoalsScreen() {
 
 function StepBtn({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: C.ink, alignItems: 'center', justifyContent: 'center' }}
-    >
+    <Pressable onPress={onPress} style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: C.ink, alignItems: 'center', justifyContent: 'center' }}>
       <Serif size={20} color={C.ink} style={{ lineHeight: 22 }}>
         {label}
       </Serif>
@@ -126,7 +126,17 @@ function StepBtn({ label, onPress }: { label: string; onPress: () => void }) {
   );
 }
 
-function GoalRow({ goal, lived }: { goal: Goal; lived: number }) {
+function GoalRow({
+  goal,
+  lived,
+  recordWeeks,
+  onOpenWeek,
+}: {
+  goal: Goal;
+  lived: number;
+  recordWeeks: Set<number>;
+  onOpenWeek: (weekIndex: number) => void;
+}) {
   const phase = goalPhase(goal, lived);
   const range = goalWeekRange(goal);
 
@@ -141,11 +151,20 @@ function GoalRow({ goal, lived }: { goal: Goal; lived: number }) {
             WK {goalCurrentWeek(goal, lived)} / {goal.weeks}
           </Mono>
         </View>
-        <Serif size={18} weight="medium" color={C.paper} style={{ marginBottom: 10 }}>
+        <Serif size={18} weight="medium" color={C.paper} style={{ marginBottom: 12 }}>
           {goal.name}
         </Serif>
-        <Mono size={8.5} spacing={0.12} color={C.darkLabel}>
-          RUNS WK {fmt(range.from)} – {fmt(range.to)} · FIND THESE IN MEMORIES
+        <ProgressStrip
+          weeks={goal.weeks}
+          current={goalCurrentWeek(goal, lived)}
+          variant="dark"
+          height={16}
+          startWeek={goal.startWeek}
+          recordWeeks={recordWeeks}
+          onCellPress={onOpenWeek}
+        />
+        <Mono size={8.5} spacing={0.12} color={C.darkLabel} style={{ marginTop: 10 }}>
+          WK {fmt(range.from)} – {fmt(range.to)} · TAP AN INKED WEEK TO REOPEN IT
         </Mono>
       </Card>
     );
@@ -190,9 +209,17 @@ function GoalRow({ goal, lived }: { goal: Goal; lived: number }) {
       <Serif size={18} weight="medium" style={{ marginBottom: 10 }}>
         {goal.name}
       </Serif>
-      <ProgressStrip weeks={goal.weeks} current={0} variant="light" height={12} />
+      <ProgressStrip
+        weeks={goal.weeks}
+        current={0}
+        variant="light"
+        height={14}
+        startWeek={goal.startWeek}
+        recordWeeks={recordWeeks}
+        onCellPress={onOpenWeek}
+      />
       <Mono size={8.5} spacing={0.12} color={C.faint} style={{ marginTop: 10 }}>
-        RAN WK {fmt(range.from)} – {fmt(range.to)} · SEARCH THESE IN MEMORIES
+        RAN WK {fmt(range.from)} – {fmt(range.to)} · TAP AN INKED WEEK TO REOPEN IT
       </Mono>
     </Card>
   );
