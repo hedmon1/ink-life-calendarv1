@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Pressable, View } from 'react-native';
 import { Card, ProgressStrip, Swatch } from '../components/Bits';
 import { CheckIcon, InfoIcon, LockIcon } from '../components/Icons';
@@ -20,6 +20,7 @@ export function ThisWeekScreen() {
   const goal = activeGoal();
   const locked = recordFor(calc.lived);
   const ci = checkinInfo(state.checkinWeekday, !!locked);
+  const recordWeeks = useMemo(() => new Set(state.records.map((r) => r.weekIndex)), [state.records]);
 
   // show the brief tutorial once, right after onboarding
   const tutorialShown = useRef(false);
@@ -100,20 +101,20 @@ export function ThisWeekScreen() {
 
       {/* active goal */}
       {goal ? (
-        <Card dark style={{ padding: 18 }}>
+        <Card style={{ padding: 18 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-            <Mono size={9.5} spacing={0.18} color={C.darkLabel}>
-              ACTIVE GOAL
+            <Mono size={9.5} spacing={0.18} color={C.muted}>
+              ACTIVE GOAL{goal.seed ? ' · EXAMPLE' : ''}
             </Mono>
-            <Mono size={9.5} spacing={0.14} color={C.gold}>
+            <Mono size={9.5} spacing={0.14} color={C.amber}>
               WEEK {goalCurrentWeek(goal, calc.lived)} OF {goal.weeks}
             </Mono>
           </View>
-          <Serif size={21} weight="medium" color={C.paper} style={{ marginBottom: 14 }}>
+          <Serif size={21} weight="medium" color={C.ink} style={{ marginBottom: 14 }}>
             {goal.name}
           </Serif>
-          <ProgressStrip weeks={goal.weeks} current={goalCurrentWeek(goal, calc.lived)} variant="dark" height={20} />
-          <Serif size={14} italic color={C.darkLabel} style={{ marginTop: 12 }}>
+          <ProgressStrip weeks={goal.weeks} current={goalCurrentWeek(goal, calc.lived)} startWeek={goal.startWeek} recordWeeks={recordWeeks} height={20} />
+          <Serif size={14} italic color={C.muted} style={{ marginTop: 12 }}>
             {isGoalFinalWeek(goal, calc.lived)
               ? "Final week. Your next review will ask you to reflect on the whole goal."
               : `${goal.weeks - goalCurrentWeek(goal, calc.lived)} weeks of pencil left before this inks.`}

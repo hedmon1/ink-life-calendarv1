@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useMemo, useState } from 'react';
-import { Image, Pressable, TextInput, View } from 'react-native';
+import { Alert, Image, Pressable, TextInput, View } from 'react-native';
 import { Screen } from '../components/Screen';
 import { Stars } from '../components/Stars';
 import { Mono, Serif } from '../components/Type';
@@ -13,13 +13,24 @@ import { C } from '../theme';
 
 export function MemoriesScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { state } = useStore();
+  const { state, clearExampleMemories } = useStore();
   const [query, setQuery] = useState('');
 
   const photographed = useMemo(
     () => state.records.filter((r) => r.photos.length > 0).sort((a, b) => b.weekIndex - a.weekIndex),
     [state.records]
   );
+
+  const hasExamples = useMemo(
+    () => state.records.some((r) => r.seed || r.photos.some((p) => p.includes('picsum.photos'))),
+    [state.records]
+  );
+
+  const confirmClear = () =>
+    Alert.alert('Clear example memories?', 'This removes the demo photos the app came with. Weeks you logged yourself stay.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Clear', style: 'destructive', onPress: clearExampleMemories },
+    ]);
 
   const q = query.trim().toLowerCase();
   const filtered = useMemo(() => {
@@ -40,11 +51,20 @@ export function MemoriesScreen() {
       <Serif size={30} weight="medium" style={{ marginBottom: 2 }}>
         Memories
       </Serif>
-      <Serif size={15} italic color={C.muted} style={{ marginBottom: 14 }}>
-        {photographed.length === 0
-          ? 'No weeks photographed yet. Lock one in your check-in.'
-          : `${fmt(photographed.length)} week${photographed.length === 1 ? '' : 's'} photographed so far.`}
-      </Serif>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
+        <Serif size={15} italic color={C.muted} style={{ flex: 1 }}>
+          {photographed.length === 0
+            ? 'No weeks photographed yet. Lock one in your check-in.'
+            : `${fmt(photographed.length)} week${photographed.length === 1 ? '' : 's'} photographed so far.`}
+        </Serif>
+        {hasExamples && (
+          <Pressable onPress={confirmClear} hitSlop={8} style={{ borderWidth: 1, borderColor: C.inputLine, borderRadius: 6, paddingVertical: 7, paddingHorizontal: 11 }}>
+            <Mono size={8.5} spacing={0.14} color={C.muted}>
+              CLEAR EXAMPLES
+            </Mono>
+          </Pressable>
+        )}
+      </View>
 
       {/* search */}
       <View

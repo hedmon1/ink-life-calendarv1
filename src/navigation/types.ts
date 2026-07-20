@@ -5,6 +5,7 @@ export type RootStackParamList = {
   WeekDetail: { weekIndex: number };
   Info: { label: string; body: string; accent: string; stat?: string; statUnit?: string; note?: string };
   Tutorial: undefined;
+  NewGoal: undefined;
 };
 
 export type TabParamList = {

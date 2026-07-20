@@ -71,20 +71,18 @@ export function OverlayToggle({
   );
 }
 
-/** Row of goal-week cells. `current` is 1-based; cells before it are inked, it is the dashed draft, the rest upcoming.
+/** Row of goal-week cells. A week is white until it's inked, then black.
  * When `startWeek` + `onCellPress` are given, inked weeks that have a record become tappable. */
 export function ProgressStrip({
   weeks,
   current,
-  variant = 'light',
   height = 18,
   startWeek,
   recordWeeks,
   onCellPress,
 }: {
   weeks: number;
-  current: number; // 0 = none in progress (all done)
-  variant?: 'dark' | 'light';
+  current: number; // 0 = none in progress (all done); else 1-based week in progress (fallback when no records)
   height?: number;
   startWeek?: number;
   recordWeeks?: Set<number>;
@@ -94,20 +92,13 @@ export function ProgressStrip({
     <View style={{ flexDirection: 'row', gap: 4 }}>
       {Array.from({ length: weeks }).map((_, k) => {
         const idx = k + 1;
-        const done = current === 0 ? true : idx < current;
-        const isCurrent = idx === current;
-        let style: ViewStyle;
-        if (variant === 'dark') {
-          if (isCurrent) style = { backgroundColor: C.paper, borderWidth: 1.5, borderColor: C.gold, borderStyle: 'dashed' };
-          else if (done) style = { backgroundColor: C.darkBar, borderWidth: 1.5, borderColor: C.amber };
-          else style = { backgroundColor: C.darkBar, borderWidth: 1.5, borderColor: 'rgba(217,166,89,0.25)' };
-        } else {
-          if (isCurrent) style = { backgroundColor: C.paper, borderWidth: 1.5, borderColor: C.gold, borderStyle: 'dashed' };
-          else if (done) style = { backgroundColor: C.ink, borderWidth: 1.5, borderColor: C.amber };
-          else style = { backgroundColor: C.pencil, borderWidth: 1.5, borderColor: C.pencilBorder };
-        }
-        const base = { flex: 1, height, borderRadius: 4 } as const;
         const weekIndex = startWeek != null ? startWeek + k : -1;
+        // inked (black) once the week has a saved record; otherwise an uninked white square
+        const inked = recordWeeks != null && startWeek != null ? recordWeeks.has(weekIndex) : current === 0 ? true : idx < current;
+        const style: ViewStyle = inked
+          ? { backgroundColor: C.ink }
+          : { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.inputLine };
+        const base = { flex: 1, height, borderRadius: 4 } as const;
         const tappable = !!(onCellPress && startWeek != null && (!recordWeeks || recordWeeks.has(weekIndex)));
         if (tappable) {
           return <Pressable key={k} hitSlop={6} onPress={() => onCellPress!(weekIndex)} style={[base, style]} />;
@@ -118,15 +109,12 @@ export function ProgressStrip({
   );
 }
 
-/** Dashed pencil draft strip used when penciling a new goal. */
+/** Draft strip for a new goal — all weeks start uninked (white). */
 export function DraftStrip({ weeks, height = 14 }: { weeks: number; height?: number }) {
   return (
     <View style={{ flexDirection: 'row', gap: 3 }}>
       {Array.from({ length: weeks }).map((_, k) => (
-        <View
-          key={k}
-          style={{ flex: 1, height, borderRadius: 3, backgroundColor: C.gold, borderWidth: 1.5, borderColor: C.ink, borderStyle: 'dashed' }}
-        />
+        <View key={k} style={{ flex: 1, height, borderRadius: 3, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.inputLine }} />
       ))}
     </View>
   );

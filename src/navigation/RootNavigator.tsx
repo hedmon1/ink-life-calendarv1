@@ -6,6 +6,7 @@ import { GoalsScreen } from '../screens/GoalsScreen';
 import { GridScreen } from '../screens/GridScreen';
 import { InfoModal } from '../screens/InfoModal';
 import { MemoriesScreen } from '../screens/MemoriesScreen';
+import { NewGoalModal } from '../screens/NewGoalModal';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { SundayReviewModal } from '../screens/SundayReviewModal';
 import { ThisWeekScreen } from '../screens/ThisWeekScreen';
@@ -46,6 +47,7 @@ export function RootNavigator() {
             <Stack.Screen name="WeekDetail" component={WeekDetailModal} />
             <Stack.Screen name="Info" component={InfoModal} />
             <Stack.Screen name="Tutorial" component={TutorialScreen} />
+            <Stack.Screen name="NewGoal" component={NewGoalModal} />
           </Stack.Group>
         </>
       )}

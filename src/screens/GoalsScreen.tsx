@@ -1,126 +1,74 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import * as Haptics from 'expo-haptics';
-import React, { useMemo, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
-import { Card, DraftStrip, ProgressStrip } from '../components/Bits';
+import React, { useMemo } from 'react';
+import { Alert, Pressable, View } from 'react-native';
+import { Card, ProgressStrip } from '../components/Bits';
 import { Screen } from '../components/Screen';
 import { Stars } from '../components/Stars';
 import { Mono, Serif } from '../components/Type';
-import { fmt, shortDate } from '../lib/calc';
-import { checkinInfo } from '../lib/checkin';
+import { fmt } from '../lib/calc';
 import { goalAvg, goalCurrentWeek, goalPhase, goalWeekRange } from '../lib/goals';
 import { RootStackParamList } from '../navigation/types';
 import { useStore } from '../store/store';
 import { C } from '../theme';
 import { Goal } from '../store/types';
 
-const MIN_W = 1;
-const MAX_W = 26;
-
 export function GoalsScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { calc, state, addGoal, recordFor } = useStore();
-  const [name, setName] = useState('');
-  const [weeks, setWeeks] = useState(12);
-
-  const start = calc.lived + 1;
-  const inPrime = Math.max(0, Math.min(weeks, calc.primeEnd - start));
-  const allInPrime = inPrime >= weeks;
-
-  // a new goal begins the day after the next check-in
-  const ci = checkinInfo(state.checkinWeekday, !!recordFor(calc.lived));
-  const startLabel = shortDate(Date.now() + (ci.daysUntil + 1) * 86400000);
+  const { calc, state, deleteGoal } = useStore();
 
   const recordWeeks = useMemo(() => new Set(state.records.map((r) => r.weekIndex)), [state.records]);
   const openWeek = (weekIndex: number) => nav.navigate('WeekDetail', { weekIndex });
 
-  const pencilIn = () => {
-    if (!name.trim()) return;
-    addGoal({ name, weeks });
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    setName('');
-    setWeeks(12);
-  };
+  const confirmDelete = (g: Goal) =>
+    Alert.alert('Delete this goal?', `“${g.name}” will be removed. Any inked weeks stay in Memories.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteGoal(g.id) },
+    ]);
 
   const order: Record<string, number> = { active: 0, penciled: 1, finished: 2 };
   const goals = [...state.goals].sort((a, b) => order[goalPhase(a, calc.lived)] - order[goalPhase(b, calc.lived)]);
 
   return (
     <Screen>
-      <Serif size={30} weight="medium" style={{ marginBottom: 14 }}>
+      <Serif size={30} weight="medium" style={{ marginBottom: 4 }}>
         Goals
       </Serif>
+      <Serif size={14.5} italic color={C.muted} style={{ marginBottom: 16 }}>
+        One big goal at a time beats five half-finished ones.
+      </Serif>
 
-      {/* new goal */}
-      <View style={{ backgroundColor: C.paper, borderWidth: 1.5, borderColor: C.muted, borderStyle: 'dashed', borderRadius: 12, padding: 18, marginBottom: 14 }}>
-        <Mono size={9.5} spacing={0.18} style={{ marginBottom: 10 }}>
-          NEW GOAL · PENCIL
-        </Mono>
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="Run a sub-3:30 marathon"
-          placeholderTextColor={C.faint}
-          style={{
-            fontFamily: 'Newsreader_400Regular_Italic',
-            fontSize: 19,
-            color: C.ink,
-            borderBottomWidth: 1,
-            borderBottomColor: C.inputLine,
-            paddingBottom: 8,
-            marginBottom: 14,
-          }}
-        />
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <Mono size={9.5} spacing={0.16} color={C.body}>
-            TIME FRAME
-          </Mono>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <StepBtn label="−" onPress={() => setWeeks((w) => Math.max(MIN_W, w - 1))} />
-            <View style={{ minWidth: 84, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
-              <Serif size={22} weight="medium">
-                {weeks}
-              </Serif>
-              <Serif size={22} weight="medium">
-                {' '}
-                wks
-              </Serif>
-            </View>
-            <StepBtn label="+" onPress={() => setWeeks((w) => Math.min(MAX_W, w + 1))} />
-          </View>
-        </View>
-
-        <View style={{ marginBottom: 12 }}>
-          <DraftStrip weeks={weeks} />
-        </View>
-
-        <Serif size={14} italic color={C.muted} style={{ marginBottom: 14 }}>
-          Starts {startLabel}, the day after your next check-in.{' '}
-          {allInPrime ? `All ${weeks} weeks land inside your prime window.` : `${inPrime} of ${weeks} weeks land inside your prime window.`}
+      {/* tap to open the new-goal form */}
+      <Pressable
+        onPress={() => nav.navigate('NewGoal')}
+        style={{ backgroundColor: C.ink, borderRadius: 10, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, marginBottom: 18 }}
+      >
+        <Serif size={19} color={C.paper} style={{ lineHeight: 19 }}>
+          +
         </Serif>
+        <Mono size={10.5} spacing={0.18} color={C.paper}>
+          NEW GOAL
+        </Mono>
+      </Pressable>
 
-        <Pressable onPress={pencilIn} style={{ backgroundColor: name.trim() ? C.ink : C.inputLine, borderRadius: 6, paddingVertical: 14, alignItems: 'center' }}>
-          <Mono size={10} spacing={0.18} color={C.paper}>
-            PENCIL IT IN
-          </Mono>
-        </Pressable>
-      </View>
+      {goals.length === 0 && (
+        <Serif size={16} italic color={C.muted} style={{ paddingVertical: 8 }}>
+          No goals yet. Tap “New Goal” to draft one against a real window.
+        </Serif>
+      )}
 
-      {/* goal list */}
       {goals.map((g) => (
-        <GoalRow key={g.id} goal={g} lived={calc.lived} recordWeeks={recordWeeks} onOpenWeek={openWeek} />
+        <GoalRow key={g.id} goal={g} lived={calc.lived} recordWeeks={recordWeeks} onOpenWeek={openWeek} onDelete={() => confirmDelete(g)} />
       ))}
     </Screen>
   );
 }
 
-function StepBtn({ label, onPress }: { label: string; onPress: () => void }) {
+function DeleteBtn({ onPress, dark }: { onPress: () => void; dark?: boolean }) {
   return (
-    <Pressable onPress={onPress} style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: C.ink, alignItems: 'center', justifyContent: 'center' }}>
-      <Serif size={20} color={C.ink} style={{ lineHeight: 22 }}>
-        {label}
+    <Pressable onPress={onPress} hitSlop={12} style={{ paddingLeft: 4 }}>
+      <Serif size={19} color={dark ? C.darkLabel : C.faint} style={{ lineHeight: 19 }}>
+        ×
       </Serif>
     </Pressable>
   );
@@ -131,39 +79,36 @@ function GoalRow({
   lived,
   recordWeeks,
   onOpenWeek,
+  onDelete,
 }: {
   goal: Goal;
   lived: number;
   recordWeeks: Set<number>;
   onOpenWeek: (weekIndex: number) => void;
+  onDelete: () => void;
 }) {
   const phase = goalPhase(goal, lived);
   const range = goalWeekRange(goal);
 
   if (phase === 'active') {
     return (
-      <Card dark style={{ paddingVertical: 16, paddingHorizontal: 18, marginBottom: 12 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-          <Mono size={9} spacing={0.16} color={C.darkLabel}>
-            ACTIVE
+      <Card style={{ paddingVertical: 16, paddingHorizontal: 18, marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <Mono size={9} spacing={0.16} color={C.muted}>
+            ACTIVE{goal.seed ? ' · EXAMPLE' : ''}
           </Mono>
-          <Mono size={9} spacing={0.12} color={C.gold}>
-            WK {goalCurrentWeek(goal, lived)} / {goal.weeks}
-          </Mono>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Mono size={9} spacing={0.12} color={C.amber}>
+              WK {goalCurrentWeek(goal, lived)} / {goal.weeks}
+            </Mono>
+            <DeleteBtn onPress={onDelete} />
+          </View>
         </View>
-        <Serif size={18} weight="medium" color={C.paper} style={{ marginBottom: 12 }}>
+        <Serif size={18} weight="medium" style={{ marginBottom: 12 }}>
           {goal.name}
         </Serif>
-        <ProgressStrip
-          weeks={goal.weeks}
-          current={goalCurrentWeek(goal, lived)}
-          variant="dark"
-          height={16}
-          startWeek={goal.startWeek}
-          recordWeeks={recordWeeks}
-          onCellPress={onOpenWeek}
-        />
-        <Mono size={8.5} spacing={0.12} color={C.darkLabel} style={{ marginTop: 10 }}>
+        <ProgressStrip weeks={goal.weeks} current={goalCurrentWeek(goal, lived)} height={16} startWeek={goal.startWeek} recordWeeks={recordWeeks} onCellPress={onOpenWeek} />
+        <Mono size={8.5} spacing={0.12} color={C.faint} style={{ marginTop: 10 }}>
           WK {fmt(range.from)} – {fmt(range.to)} · TAP AN INKED WEEK TO REOPEN IT
         </Mono>
       </Card>
@@ -172,23 +117,26 @@ function GoalRow({
 
   if (phase === 'penciled') {
     return (
-      <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 12, padding: 16, marginBottom: 12 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+      <Card style={{ paddingVertical: 16, paddingHorizontal: 18, marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <Mono size={9} spacing={0.16} color={C.muted}>
             PENCILED · STARTS SOON
           </Mono>
-          <Mono size={9} spacing={0.12} color={C.muted}>
-            {goal.weeks} WKS
-          </Mono>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Mono size={9} spacing={0.12} color={C.muted}>
+              {goal.weeks} WKS
+            </Mono>
+            <DeleteBtn onPress={onDelete} />
+          </View>
         </View>
         <Serif size={18} weight="medium" style={{ marginBottom: 10 }}>
           {goal.name}
         </Serif>
-        <DraftStrip weeks={goal.weeks} height={12} />
+        <ProgressStrip weeks={goal.weeks} current={1} height={14} />
         <Mono size={8.5} spacing={0.12} color={C.faint} style={{ marginTop: 10 }}>
           WILL RUN WK {fmt(range.from)} – {fmt(range.to)}
         </Mono>
-      </View>
+      </Card>
     );
   }
 
@@ -199,25 +147,18 @@ function GoalRow({
         <Mono size={9} spacing={0.16} color={C.muted}>
           FINISHED
         </Mono>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Stars value={Math.round(goalAvg(goal))} size={11} />
           <Mono size={9} spacing={0.12} color={C.amber}>
             {goalAvg(goal).toFixed(1)} AVG
           </Mono>
+          <DeleteBtn onPress={onDelete} />
         </View>
       </View>
       <Serif size={18} weight="medium" style={{ marginBottom: 10 }}>
         {goal.name}
       </Serif>
-      <ProgressStrip
-        weeks={goal.weeks}
-        current={0}
-        variant="light"
-        height={14}
-        startWeek={goal.startWeek}
-        recordWeeks={recordWeeks}
-        onCellPress={onOpenWeek}
-      />
+      <ProgressStrip weeks={goal.weeks} current={0} height={14} startWeek={goal.startWeek} recordWeeks={recordWeeks} onCellPress={onOpenWeek} />
       <Mono size={8.5} spacing={0.12} color={C.faint} style={{ marginTop: 10 }}>
         RAN WK {fmt(range.from)} – {fmt(range.to)} · TAP AN INKED WEEK TO REOPEN IT
       </Mono>

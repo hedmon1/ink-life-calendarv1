@@ -52,10 +52,13 @@ export function GridScreen() {
         The Grid
       </Serif>
 
-      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
         <OverlayToggle active={state.overlays.prime} color={C.amber} label={`PRIME · ${fmt(calc.primeLeft)}`} onPress={() => toggleOverlay('prime')} />
         <OverlayToggle active={state.overlays.prox} color={C.slate} label={`PROX · ${fmt(calc.proxLeft)}`} onPress={() => toggleOverlay('prox')} />
       </View>
+      <Mono size={9} spacing={0.12} color={C.muted} style={{ marginBottom: 14 }}>
+        TAP EACH TO SHADE ITS WINDOW ON THE GRID
+      </Mono>
 
       {/* zoom controls */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>

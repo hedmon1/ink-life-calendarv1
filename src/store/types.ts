@@ -10,6 +10,8 @@ export type Goal = {
   /** fulfillment ratings collected as each goal week locks */
   ratings: number[];
   createdAt: number;
+  /** true for the demo goal seeded on first run */
+  seed?: boolean;
 };
 
 export type WeekRecord = {
@@ -18,8 +20,10 @@ export type WeekRecord = {
   sentence: string;
   rating: number; // 1–5
   photos: string[]; // up to 3 uris
-  goalId?: string; // set when the week belonged to a goal → ringed in the grid
+  goalId?: string; // set when the week belonged to a goal
   lockedAt: number;
+  /** true for the demo content seeded on first run */
+  seed?: boolean;
 };
 
 export type Overlays = { prime: boolean; prox: boolean };

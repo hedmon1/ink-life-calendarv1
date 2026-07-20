@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { clampBirthYear, lifeCalc, LifeCalc } from '../lib/calc';
 import { goalPhase } from '../lib/goals';
+import { ensureNotificationPermission, scheduleCheckinReminders, setupNotifications } from '../lib/notifications';
 import { buildSeed } from './seed';
 import { AppState, Goal, WeekRecord } from './types';
 
-const STORAGE_KEY = 'ink.state.v5';
+const STORAGE_KEY = 'ink.state.v6';
 
 const DEFAULT_STATE: AppState = {
   birthYear: 1998,
@@ -30,7 +31,9 @@ type Store = {
   markTutorialSeen: () => void;
   toggleOverlay: (key: 'prime' | 'prox') => void;
   addGoal: (input: { name: string; weeks: number }) => void;
+  deleteGoal: (id: string) => void;
   lockCurrentWeek: (input: { sentence: string; rating: number; photos: string[] }) => void;
+  clearExampleMemories: () => void;
   reset: () => void;
   // selectors
   recordFor: (weekIndex: number) => WeekRecord | undefined;
@@ -43,6 +46,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(DEFAULT_STATE);
   const [ready, setReady] = useState(false);
   const hydrated = useRef(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   // hydrate
   useEffect(() => {
@@ -64,6 +69,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!hydrated.current) return;
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
   }, [state]);
+
+  // notifications: foreground handler + Android channel
+  useEffect(() => {
+    setupNotifications();
+  }, []);
+
+  // keep the weekly check-in reminders in sync (silently — only if permission is granted)
+  useEffect(() => {
+    if (!ready) return;
+    scheduleCheckinReminders(state);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, state.checkinWeekday, state.records, state.birthYear, state.proximityWeeks]);
 
   const calc = useMemo(() => lifeCalc(state.birthYear, state.proximityWeeks), [state.birthYear, state.proximityWeeks]);
 
@@ -103,12 +120,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         id: `g-${Date.now()}`,
         name: input.name.trim(),
         weeks: Math.max(1, Math.min(52, Math.round(input.weeks))),
-        startWeek: c.lived + 1, // pencils in starting next week
+        startWeek: c.lived, // starts immediately — active this week
         ratings: [],
         createdAt: Date.now(),
       };
       return { ...s, goals: [goal, ...s.goals] };
     });
+  }, []);
+
+  const deleteGoal = useCallback((id: string) => {
+    setState((s) => ({ ...s, goals: s.goals.filter((g) => g.id !== id) }));
+  }, []);
+
+  const clearExampleMemories = useCallback(() => {
+    setState((s) => ({
+      ...s,
+      records: s.records.filter((r) => !(r.seed || r.photos.some((p) => p.includes('picsum.photos')))),
+    }));
   }, []);
 
   const lockCurrentWeek = useCallback((input: { sentence: string; rating: number; photos: string[] }) => {
@@ -137,6 +165,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const checkinWeekday = s.checkinWeekday ?? new Date().getDay();
       return { ...s, records, goals, checkinWeekday, lastCheckinAt: Date.now() };
     });
+    // ask for notification permission on the first check-in, then (re)schedule reminders
+    ensureNotificationPermission().then((granted) => {
+      if (granted) scheduleCheckinReminders(stateRef.current);
+    });
   }, []);
 
   const reset = useCallback(() => {
@@ -162,7 +194,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     markTutorialSeen,
     toggleOverlay,
     addGoal,
+    deleteGoal,
     lockCurrentWeek,
+    clearExampleMemories,
     reset,
     recordFor,
     activeGoal,

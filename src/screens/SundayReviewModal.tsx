@@ -8,7 +8,7 @@ import { ModalShell } from '../components/ModalShell';
 import { Stars } from '../components/Stars';
 import { Mono, Serif } from '../components/Type';
 import { fmt } from '../lib/calc';
-import { isGoalFinalWeek } from '../lib/goals';
+import { goalCurrentWeek, isGoalFinalWeek } from '../lib/goals';
 import { CURRENT_WEEK_DRAFT } from '../store/seed';
 import { useStore } from '../store/store';
 import { C } from '../theme';
@@ -81,6 +81,17 @@ export function SundayReviewModal() {
               </Mono>
               <Serif size={14.5} italic color={C.goalTagText2}>
                 “{goal!.name}” closes now. Reflect on the whole {goal!.weeks} weeks, not just this one.
+              </Serif>
+            </View>
+          )}
+
+          {goal && !goalEnds && (
+            <View style={{ backgroundColor: C.goalTagBg, borderWidth: 1, borderColor: C.goalTagBorder, borderRadius: 8, padding: 12, marginBottom: 14 }}>
+              <Mono size={8.5} spacing={0.14} color={C.goalTagText} style={{ marginBottom: 4 }}>
+                ACTIVE GOAL · WEEK {goalCurrentWeek(goal, calc.lived)} OF {goal.weeks}
+              </Mono>
+              <Serif size={14.5} italic color={C.goalTagText2}>
+                “{goal.name}” — did this week move it forward? Say so in your sentence.
               </Serif>
             </View>
           )}
