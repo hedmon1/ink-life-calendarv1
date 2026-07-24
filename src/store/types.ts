@@ -39,4 +39,8 @@ export type AppState = {
   tutorialSeen: boolean;
   /** absolute week index when the app was first opened — marked green on the grid */
   installWeekIndex: number | null;
+  /** week index of the last saved wallpaper; null until the feature is first used */
+  lastWallpaperWeek: number | null;
+  /** opt-in weekly notification nudging the user to refresh their wallpaper */
+  wallpaperReminders: boolean;
 };

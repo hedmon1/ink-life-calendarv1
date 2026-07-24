@@ -90,6 +90,18 @@ export function GridScreen() {
       <Mono size={9.5} spacing={0.16} color={C.faint} style={{ textAlign: 'center', marginTop: 18 }}>
         80 YEARS × 52 WEEKS
       </Mono>
+
+      <Pressable
+        onPress={() => nav.navigate('Wallpaper')}
+        style={{ marginTop: 20, borderWidth: 1, borderColor: C.inputLine, borderRadius: 10, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+      >
+        <Mono size={10} spacing={0.16} color={C.ink}>
+          USE AS WALLPAPER · ADD WIDGETS
+        </Mono>
+        <Serif size={16} color={C.ink} style={{ lineHeight: 16 }}>
+          →
+        </Serif>
+      </Pressable>
     </Screen>
   );
 }

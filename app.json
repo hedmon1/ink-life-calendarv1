@@ -4,6 +4,7 @@
     "slug": "ink",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "ink",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#08090a",
@@ -21,8 +22,12 @@
       "config": {
         "usesNonExemptEncryption": false
       },
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.com.ink.lifecalendar"]
+      },
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Ink lets you attach one photo to the week you're locking into ink."
+        "NSPhotoLibraryUsageDescription": "Ink lets you attach one photo to the week you're locking into ink.",
+        "NSPhotoLibraryAddUsageDescription": "Ink saves your life-grid wallpaper into your Photos."
       }
     },
     "android": {
@@ -40,6 +45,14 @@
       ],
       "expo-font",
       "expo-notifications",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Ink saves your life-grid wallpaper to Photos.",
+          "savePhotosPermission": "Ink saves your life-grid wallpaper into the Ink album.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
       "@bacons/apple-targets"
     ]
   }

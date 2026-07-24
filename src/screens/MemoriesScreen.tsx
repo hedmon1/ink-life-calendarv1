@@ -3,6 +3,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useMemo, useState } from 'react';
 import { Alert, Image, Pressable, TextInput, View } from 'react-native';
 import { Card } from '../components/Bits';
+import { BookView } from '../components/BookView';
 import { Screen } from '../components/Screen';
 import { Stars } from '../components/Stars';
 import { Mono, Serif } from '../components/Type';
@@ -16,6 +17,7 @@ export function MemoriesScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { state, clearExampleMemories } = useStore();
   const [query, setQuery] = useState('');
+  const [view, setView] = useState<'grid' | 'book'>('grid');
 
   const photographed = useMemo(
     () => state.records.filter((r) => r.photos.length > 0).sort((a, b) => b.weekIndex - a.weekIndex),
@@ -52,12 +54,33 @@ export function MemoriesScreen() {
       <Serif size={30} weight="medium" style={{ marginBottom: 2 }}>
         Memories
       </Serif>
-      <Serif size={15} italic color={C.muted} style={{ marginBottom: 14 }}>
-        {photographed.length === 0
-          ? 'Nothing photographed yet.'
-          : `${fmt(photographed.length)} week${photographed.length === 1 ? '' : 's'} photographed.`}
-      </Serif>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
+        <Serif size={15} italic color={C.muted} style={{ flex: 1 }}>
+          {photographed.length === 0
+            ? 'Nothing photographed yet.'
+            : `${fmt(photographed.length)} week${photographed.length === 1 ? '' : 's'} photographed.`}
+        </Serif>
+        <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: C.inputLine, borderRadius: 7, overflow: 'hidden' }}>
+          {(['grid', 'book'] as const).map((v) => (
+            <Pressable key={v} onPress={() => setView(v)} style={{ paddingVertical: 7, paddingHorizontal: 12, backgroundColor: view === v ? C.ink : 'transparent' }}>
+              <Mono size={8.5} spacing={0.14} color={view === v ? C.paper : C.muted}>
+                {v.toUpperCase()}
+              </Mono>
+            </Pressable>
+          ))}
+        </View>
+      </View>
 
+      {view === 'book' && (
+        <BookView
+          records={state.records}
+          birthYear={state.birthYear}
+          onOpenWeek={(weekIndex) => nav.navigate('WeekDetail', { weekIndex })}
+        />
+      )}
+
+      {view === 'grid' && (
+        <>
       {hasExamples && (
         <Card style={{ borderColor: C.amber, marginBottom: 14, padding: 14 }}>
           <Mono size={9} spacing={0.18} color={C.amber} style={{ marginBottom: 4 }}>
@@ -144,6 +167,8 @@ export function MemoriesScreen() {
               <MemoryTile key={r.weekIndex} record={r} onPress={() => nav.navigate('WeekDetail', { weekIndex: r.weekIndex })} />
             ))}
           </View>
+        </>
+      )}
         </>
       )}
     </Screen>

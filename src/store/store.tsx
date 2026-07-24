@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { clampBirthYear, lifeCalc, LifeCalc } from '../lib/calc';
+import { writeWidgetData } from '../lib/extensionStorage';
 import { goalPhase } from '../lib/goals';
 import { ensureNotificationPermission, scheduleCheckinReminders, setupNotifications } from '../lib/notifications';
 import { buildSeed } from './seed';
@@ -19,6 +20,8 @@ const DEFAULT_STATE: AppState = {
   lastCheckinAt: null,
   tutorialSeen: false,
   installWeekIndex: null,
+  lastWallpaperWeek: null,
+  wallpaperReminders: false,
 };
 
 type Store = {
@@ -35,6 +38,10 @@ type Store = {
   deleteGoal: (id: string) => void;
   lockCurrentWeek: (input: { sentence: string; rating: number; photos: string[] }) => void;
   clearExampleMemories: () => void;
+  markWallpaperSaved: (weekIndex: number) => void;
+  setWallpaperReminders: (on: boolean) => void;
+  /** replace local state with a cloud backup (CloudSync restore) */
+  importState: (incoming: AppState) => void;
   reset: () => void;
   // selectors
   recordFor: (weekIndex: number) => WeekRecord | undefined;
@@ -81,7 +88,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!ready) return;
     scheduleCheckinReminders(state);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, state.checkinWeekday, state.records, state.birthYear, state.proximityWeeks]);
+  }, [ready, state.checkinWeekday, state.records, state.birthYear, state.proximityWeeks, state.wallpaperReminders]);
+
+  // keep the home/lock-screen widgets' shared birth year in sync
+  useEffect(() => {
+    if (!ready) return;
+    writeWidgetData(state.birthYear);
+  }, [ready, state.birthYear]);
 
   const calc = useMemo(() => lifeCalc(state.birthYear, state.proximityWeeks), [state.birthYear, state.proximityWeeks]);
 
@@ -136,6 +149,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, goals: s.goals.filter((g) => g.id !== id) }));
   }, []);
 
+  const markWallpaperSaved = useCallback((weekIndex: number) => {
+    setState((s) => ({ ...s, lastWallpaperWeek: weekIndex }));
+  }, []);
+
+  const setWallpaperReminders = useCallback((on: boolean) => {
+    setState((s) => ({ ...s, wallpaperReminders: on }));
+  }, []);
+
   const clearExampleMemories = useCallback(() => {
     setState((s) => ({
       ...s,
@@ -170,6 +191,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const importState = useCallback((incoming: AppState) => {
+    setState({ ...DEFAULT_STATE, ...incoming });
+  }, []);
+
   const reset = useCallback(() => {
     setState(DEFAULT_STATE);
   }, []);
@@ -197,6 +222,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     deleteGoal,
     lockCurrentWeek,
     clearExampleMemories,
+    markWallpaperSaved,
+    setWallpaperReminders,
+    importState,
     reset,
     recordFor,
     activeGoal,

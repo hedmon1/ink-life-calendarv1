@@ -121,5 +121,7 @@ struct InkYearWidget: Widget {
 struct InkWidgetBundle: WidgetBundle {
   var body: some Widget {
     InkYearWidget()
+    InkGridWidget()
+    InkLockWidget()
   }
 }

@@ -173,6 +173,22 @@ function MiniDetail() {
   );
 }
 
+function MiniWidget() {
+  return (
+    <View style={{ alignItems: 'center', gap: 10 }}>
+      <View style={{ backgroundColor: C.bg, borderWidth: 1, borderColor: C.inputLine, borderRadius: 16, padding: 12 }}>
+        <Mono size={7} spacing={0.14} color={C.faint} style={{ marginBottom: 6 }}>
+          WK 1,466 / 4,160
+        </Mono>
+        <MiniGrid />
+      </View>
+      <Mono size={7.5} spacing={0.14} color={C.faint}>
+        HOME-SCREEN WIDGET · LOCK SCREEN · WALLPAPER
+      </Mono>
+    </View>
+  );
+}
+
 type Step = { visual: React.ReactNode; kicker: string; title: string; body: string };
 
 const STEPS: Step[] = [
@@ -217,6 +233,12 @@ const STEPS: Step[] = [
     kicker: 'LOOK BACK',
     title: 'Ink is ink.',
     body: 'Tap any inked week to reopen it. No edits, no deletions.',
+  },
+  {
+    visual: <MiniWidget />,
+    kicker: 'ON YOUR PHONE',
+    title: 'It lives on your screen.',
+    body: 'Add the widget — a square inks itself every week. Or make the grid your wallpaper from the Grid tab.',
   },
 ];
 

@@ -6,6 +6,11 @@ export type RootStackParamList = {
   Info: { label: string; body: string; accent: string; stat?: string; statUnit?: string; note?: string };
   Tutorial: undefined;
   NewGoal: undefined;
+  Wallpaper: undefined;
+  WallpaperTutorial: undefined;
+  Auth: undefined;
+  Account: undefined;
+  Paywall: undefined;
 };
 
 export type TabParamList = {
