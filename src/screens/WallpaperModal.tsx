@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import React, { useRef, useState } from 'react';
-import { Alert, Dimensions, Pressable, ScrollView, Switch, View } from 'react-native';
+import { Alert, Dimensions, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ModalShell } from '../components/ModalShell';
 import { Mono, Serif } from '../components/Type';
@@ -15,25 +15,31 @@ import { C } from '../theme';
 export function WallpaperModal() {
   const insets = useSafeAreaInsets();
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { state, markWallpaperSaved, setWallpaperReminders } = useStore();
+  const { state, markWallpaperSaved } = useStore();
   const screen = Dimensions.get('screen');
   const shotRef = useRef<View>(null);
   const [saving, setSaving] = useState(false);
+  const enabled = state.lastWallpaperWeek != null;
 
-  const previewW = Math.min(200, screen.width * 0.52);
+  const previewW = Math.min(190, screen.width * 0.5);
   const previewH = previewW * (screen.height / screen.width);
 
-  const onSave = async () => {
+  // Save this week's grid to the Ink album; this also switches on the weekly
+  // auto-refresh (WallpaperAutoUpdater re-captures each new week), then walks the
+  // user through the one-time Shortcut that applies it automatically.
+  const enableAuto = async () => {
     setSaving(true);
     const r = await captureAndSaveWallpaper(shotRef);
     setSaving(false);
     if (r === 'saved') {
+      const firstTime = state.lastWallpaperWeek == null;
       markWallpaperSaved(currentWeekIndex(state.birthYear));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      Alert.alert(
-        'Saved to Photos',
-        'Your grid is in the "Ink" album. Set it: Settings → Wallpaper → Add New Wallpaper → Photos → pick it.'
-      );
+      if (firstTime) {
+        nav.navigate('WallpaperTutorial');
+      } else {
+        Alert.alert('Grid saved', 'This week’s grid is in your “Ink” album. Your weekly Shortcut will apply it.');
+      }
     } else if (r === 'denied') {
       Alert.alert('Photos access needed', 'Allow photo access in Settings so Ink can save the wallpaper image.');
     } else {
@@ -42,71 +48,58 @@ export function WallpaperModal() {
   };
 
   return (
-    <ModalShell title="WALLPAPER">
+    <ModalShell title="ON YOUR SCREEN">
       <ScrollView contentContainerStyle={{ paddingHorizontal: 22, paddingBottom: insets.bottom + 28 }} showsVerticalScrollIndicator={false}>
         <Serif size={28} weight="medium" style={{ marginBottom: 6 }}>
           Your life, on your screen.
         </Serif>
-        <Serif size={15} italic color={C.muted} style={{ marginBottom: 14 }}>
-          Save the full grid as a wallpaper. It re-inks one square each week.
+        <Serif size={15} italic color={C.muted} style={{ marginBottom: 22 }}>
+          Two ways to keep the grid in front of you — both tick a square every week.
         </Serif>
 
-        <Pressable
-          onPress={() => nav.navigate('WallpaperTutorial')}
-          style={{ alignSelf: 'flex-start', borderWidth: 1, borderColor: C.inputLine, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 13, marginBottom: 20 }}
-        >
-          <Mono size={9} spacing={0.14} color={C.ink}>
-            STEP-BY-STEP SETUP →
-          </Mono>
-        </Pressable>
-
         {/* preview */}
-        <View style={{ alignItems: 'center', marginBottom: 22 }}>
+        <View style={{ alignItems: 'center', marginBottom: 24 }}>
           <View style={{ width: previewW, height: previewH, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: C.cardLine }}>
             <WallpaperGrid width={previewW} height={previewH} birthYear={state.birthYear} />
           </View>
         </View>
 
-        <Pressable onPress={onSave} disabled={saving} style={{ backgroundColor: C.ink, borderRadius: 10, paddingVertical: 16, alignItems: 'center', marginBottom: 14, opacity: saving ? 0.6 : 1 }}>
-          <Mono size={11} spacing={0.16} color={C.paper}>
-            {saving ? 'SAVING…' : 'SAVE TO PHOTOS'}
+        {/* option 1 — auto-updating wallpaper */}
+        <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 16, padding: 18, marginBottom: 14 }}>
+          <Mono size={9} spacing={0.16} color={C.amber} style={{ marginBottom: 8 }}>
+            AUTO-UPDATING WALLPAPER
           </Mono>
-        </Pressable>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 22 }}>
-          <Serif size={14} italic color={C.muted} style={{ flex: 1, marginRight: 12 }}>
-            Remind me weekly to refresh it
+          <Serif size={14.5} color={C.body} style={{ lineHeight: 22, marginBottom: 16 }}>
+            Ink re-saves your grid every week; a one-time Shortcut sets it as your lock screen automatically.
           </Serif>
-          <Switch
-            value={state.wallpaperReminders}
-            onValueChange={setWallpaperReminders}
-            trackColor={{ true: C.amber, false: C.inputLine }}
-            thumbColor={C.paper}
-          />
+          <Pressable onPress={enableAuto} disabled={saving} style={{ backgroundColor: C.ink, borderRadius: 9, paddingVertical: 15, alignItems: 'center', opacity: saving ? 0.6 : 1 }}>
+            <Mono size={10.5} spacing={0.16} color={C.paper}>
+              {saving ? 'SAVING…' : enabled ? 'SAVE THIS WEEK’S GRID' : 'SET UP AUTO WALLPAPER'}
+            </Mono>
+          </Pressable>
+          <Pressable onPress={() => nav.navigate('WallpaperTutorial')} style={{ paddingVertical: 12, alignItems: 'center' }}>
+            <Mono size={9} spacing={0.14} color={C.muted}>
+              {enabled ? 'REVIEW SHORTCUT SETUP →' : 'HOW IT WORKS →'}
+            </Mono>
+          </Pressable>
+          {enabled && (
+            <Mono size={8.5} spacing={0.12} color={C.faint} style={{ textAlign: 'center', marginTop: 2 }}>
+              ON · REFRESHES EACH WEEK YOU OPEN INK
+            </Mono>
+          )}
         </View>
 
-        {/* live widgets */}
-        <Section kicker="LIVE WIDGETS · AUTO-TICK">
-          <Step n="•" text="Long-press the Home Screen → + → search “Ink” → add the large Life in Weeks widget." />
-          <Step n="•" text="On the Lock Screen: Customize → add the Ink widget above or below the clock." />
-          <Serif size={13.5} italic color={C.muted} style={{ marginTop: 4 }}>
-            Widgets ink a new square every week on their own — no wallpaper needed.
+        {/* option 2 — widget */}
+        <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 16, padding: 18 }}>
+          <Mono size={9} spacing={0.16} color={C.amber} style={{ marginBottom: 8 }}>
+            LIVE WIDGET · ZERO SETUP
+          </Mono>
+          <Serif size={14.5} color={C.body} style={{ lineHeight: 22, marginBottom: 14 }}>
+            Add the Ink widget and it inks a new square every week on its own — no Shortcut needed.
           </Serif>
-        </Section>
-
-        {/* auto wallpaper via shortcuts */}
-        <Section kicker="AUTO-UPDATE THE WALLPAPER (OPTIONAL)">
-          <Serif size={13.5} color={C.body} style={{ lineHeight: 21, marginBottom: 12 }}>
-            iOS won’t let an app change your wallpaper, but a one-time Shortcut can swap it weekly:
-          </Serif>
-          <Step n="1" text="Shortcuts app → Automation → New → Weekly (pick a day/time)." />
-          <Step n="2" text="Add action “Get Latest Photos”, set Album to “Ink”, count 1." />
-          <Step n="3" text="Add action “Set Wallpaper” → Lock Screen, feed it that photo, turn off Show Preview." />
-          <Step n="4" text="Turn off “Ask Before Running”. Each week it applies the freshest grid." />
-          <Serif size={12.5} italic color={C.faint} style={{ marginTop: 8, lineHeight: 18 }}>
-            The “Set Wallpaper” action’s availability depends on your iOS version. If it’s missing, just re-open Ink weekly and tap Save, then set it yourself.
-          </Serif>
-        </Section>
+          <Step text="Home Screen: long-press → ＋ → search “Ink” → add Life in Weeks." />
+          <Step text="Lock Screen: Customize → add the Ink widget by the clock." />
+        </View>
       </ScrollView>
 
       {/* off-screen full-resolution capture target */}
@@ -122,22 +115,11 @@ export function WallpaperModal() {
   );
 }
 
-function Section({ kicker, children }: { kicker: string; children: React.ReactNode }) {
-  return (
-    <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 14, padding: 16, marginBottom: 14 }}>
-      <Mono size={9} spacing={0.16} color={C.muted} style={{ marginBottom: 12 }}>
-        {kicker}
-      </Mono>
-      {children}
-    </View>
-  );
-}
-
-function Step({ n, text }: { n: string; text: string }) {
+function Step({ text }: { text: string }) {
   return (
     <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-      <Mono size={11} color={C.amber} style={{ width: 12 }}>
-        {n}
+      <Mono size={11} color={C.amber} style={{ width: 10 }}>
+        •
       </Mono>
       <Serif size={13.5} color={C.body} style={{ flex: 1, lineHeight: 20 }}>
         {text}

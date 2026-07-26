@@ -1,13 +1,23 @@
 import React from 'react';
 import Svg, { Path, Rect, Text as SvgText } from 'react-native-svg';
-import { fmt, LIFE_YEARS, lifeCalc, PRIME_END, WEEKS_PER_YEAR } from '../lib/calc';
+import { fmt, LIFE_YEARS, lifeCalc, WEEKS_PER_YEAR } from '../lib/calc';
 import { C } from '../theme';
 
+// segmentation, mirroring LifeGrid: 13-week quarters across, decades down
+const QUARTER = 13;
+const DECADE = 10;
+const HBLOCKS = Math.floor((WEEKS_PER_YEAR - 1) / QUARTER); // 3 inter-block gaps per row
+const VBLOCKS = Math.floor((LIFE_YEARS - 1) / DECADE); // 7 inter-block gaps per column
+
+// sizing ratios relative to a cell
+const GAP_R = 0.28; // thin gap between cells
+const BLOCK_R = 0.95; // wider gap between quarter/decade blocks
+
 /**
- * Full-screen 52×80 life grid, sized to the device for use as a wallpaper.
- * Drawn as a handful of SVG <Path>s (one per cell category) rather than 4,160
- * <Rect>s so it captures fast. The grid is nudged below the top of the screen
- * so the lock-screen clock doesn't sit on it.
+ * Full-screen life grid, sized to the device for use as a wallpaper. Just lived /
+ * this-week / ahead — no prime or proximity shading — and split into quarter and
+ * decade blocks like the main grid so the passage of time reads clearly. Drawn as
+ * two SVG <Path>s (one per state) so it captures fast.
  */
 export function WallpaperGrid({ width, height, birthYear }: { width: number; height: number; birthYear: number }) {
   const { lived } = lifeCalc(birthYear);
@@ -19,17 +29,25 @@ export function WallpaperGrid({ width, height, birthYear }: { width: number; hei
   const botPad = height * 0.13;
   const availW = width - padX * 2;
   const availH = height - topPad - botPad;
-  const gap = Math.max(1, availW * 0.003);
-  const cell = Math.min((availW - (cols - 1) * gap) / cols, (availH - (rows - 1) * gap) / rows);
-  const gridW = cols * cell + (cols - 1) * gap;
-  const gridH = rows * cell + (rows - 1) * gap;
+
+  // solve for the cell size with gap/blockGap expressed as multiples of it
+  const cellW = availW / (cols + (cols - 1) * GAP_R + HBLOCKS * BLOCK_R);
+  const cellH = availH / (rows + (rows - 1) * GAP_R + VBLOCKS * BLOCK_R);
+  const cell = Math.min(cellW, cellH);
+  const gap = cell * GAP_R;
+  const blockGap = cell * BLOCK_R;
+
+  const gridW = cols * cell + (cols - 1) * gap + HBLOCKS * blockGap;
+  const gridH = rows * cell + (rows - 1) * gap + VBLOCKS * blockGap;
   const x0 = (width - gridW) / 2;
   const y0 = topPad + (availH - gridH) / 2;
 
   const xy = (i: number) => {
     const c = i % cols;
     const r = Math.floor(i / cols);
-    return [x0 + c * (cell + gap), y0 + r * (cell + gap)] as const;
+    const x = x0 + c * (cell + gap) + Math.floor(c / QUARTER) * blockGap;
+    const y = y0 + r * (cell + gap) + Math.floor(r / DECADE) * blockGap;
+    return [x, y] as const;
   };
   const rectAt = (i: number) => {
     const [x, y] = xy(i);
@@ -38,11 +56,9 @@ export function WallpaperGrid({ width, height, birthYear }: { width: number; hei
 
   let inkedD = '';
   let pencilD = '';
-  let primeD = '';
   for (let i = 0; i < cols * rows; i++) {
     if (i < lived) inkedD += rectAt(i);
     else if (i === lived) continue; // drawn separately (outlined)
-    else if (i < PRIME_END) primeD += rectAt(i);
     else pencilD += rectAt(i);
   }
   const [twx, twy] = xy(Math.min(lived, cols * rows - 1));
@@ -51,7 +67,6 @@ export function WallpaperGrid({ width, height, birthYear }: { width: number; hei
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
       <Rect x={0} y={0} width={width} height={height} fill={C.bg} />
       {pencilD ? <Path d={pencilD} fill={C.pencil} /> : null}
-      {primeD ? <Path d={primeD} fill={C.amber} /> : null}
       {inkedD ? <Path d={inkedD} fill={C.ink} /> : null}
       <Rect x={twx} y={twy} width={cell} height={cell} fill={C.bg} stroke={C.ink} strokeWidth={Math.max(1, cell * 0.12)} />
       <SvgText
