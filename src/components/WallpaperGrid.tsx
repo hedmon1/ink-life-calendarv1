@@ -18,17 +18,19 @@ const BLOCK_R = 0.95; // wider gap between quarter/decade blocks
  * this-week / ahead — no prime or proximity shading — and split into quarter and
  * decade blocks like the main grid so the passage of time reads clearly. Drawn as
  * two SVG <Path>s (one per state) so it captures fast.
+ *
+ * Layout is dead-centered with symmetric margins on every device, mirroring the
+ * Swift renderer in targets/widget/intent.swift — keep the two in sync.
  */
 export function WallpaperGrid({ width, height, birthYear }: { width: number; height: number; birthYear: number }) {
   const { lived } = lifeCalc(birthYear);
   const cols = WEEKS_PER_YEAR;
   const rows = LIFE_YEARS;
 
-  const padX = width * 0.09;
-  const topPad = height * 0.2; // clear the lock clock
-  const botPad = height * 0.13;
+  const padX = width * 0.1;
+  const padY = height * 0.14;
   const availW = width - padX * 2;
-  const availH = height - topPad - botPad;
+  const availH = height - padY * 2;
 
   // solve for the cell size with gap/blockGap expressed as multiples of it
   const cellW = availW / (cols + (cols - 1) * GAP_R + HBLOCKS * BLOCK_R);
@@ -40,7 +42,7 @@ export function WallpaperGrid({ width, height, birthYear }: { width: number; hei
   const gridW = cols * cell + (cols - 1) * gap + HBLOCKS * blockGap;
   const gridH = rows * cell + (rows - 1) * gap + VBLOCKS * blockGap;
   const x0 = (width - gridW) / 2;
-  const y0 = topPad + (availH - gridH) / 2;
+  const y0 = (height - gridH) / 2;
 
   const xy = (i: number) => {
     const c = i % cols;
@@ -71,10 +73,10 @@ export function WallpaperGrid({ width, height, birthYear }: { width: number; hei
       <Rect x={twx} y={twy} width={cell} height={cell} fill={C.bg} stroke={C.ink} strokeWidth={Math.max(1, cell * 0.12)} />
       <SvgText
         x={width / 2}
-        y={height - botPad * 0.5}
+        y={y0 + gridH + height * 0.045 + width * 0.028}
         fill={C.muted}
         fontFamily="IBMPlexMono_500Medium"
-        fontSize={Math.round(width * 0.03)}
+        fontSize={Math.round(width * 0.028)}
         letterSpacing={2}
         textAnchor="middle"
       >

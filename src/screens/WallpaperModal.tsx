@@ -70,7 +70,7 @@ export function WallpaperModal() {
             AUTO-UPDATING WALLPAPER
           </Mono>
           <Serif size={14.5} color={C.body} style={{ lineHeight: 22, marginBottom: 16 }}>
-            Ink re-saves your grid every week; a one-time Shortcut sets it as your lock screen automatically.
+            Set it up once. Every week iOS asks Ink for the newest grid and applies it by itself — even if you never open the app.
           </Serif>
           <Pressable onPress={enableAuto} disabled={saving} style={{ backgroundColor: C.ink, borderRadius: 9, paddingVertical: 15, alignItems: 'center', opacity: saving ? 0.6 : 1 }}>
             <Mono size={10.5} spacing={0.16} color={C.paper}>
@@ -84,7 +84,7 @@ export function WallpaperModal() {
           </Pressable>
           {enabled && (
             <Mono size={8.5} spacing={0.12} color={C.faint} style={{ textAlign: 'center', marginTop: 2 }}>
-              ON · REFRESHES EACH WEEK YOU OPEN INK
+              ON · FULLY AUTOMATIC AFTER SETUP
             </Mono>
           )}
         </View>
@@ -97,8 +97,9 @@ export function WallpaperModal() {
           <Serif size={14.5} color={C.body} style={{ lineHeight: 22, marginBottom: 14 }}>
             Add the Ink widget and it inks a new square every week on its own — no Shortcut needed.
           </Serif>
-          <Step text="Home Screen: long-press → ＋ → search “Ink” → add Life in Weeks." />
-          <Step text="Lock Screen: Customize → add the Ink widget by the clock." />
+          <Step text="Hold a widget on your Home Screen → Edit Stack → ＋ (top left) → search “Ink”." />
+          <Step text="No widgets yet? Hold empty Home Screen space → ＋ → search “Ink”." />
+          <Step text="Lock Screen: hold it → Customize → add Ink by the clock." />
         </View>
       </ScrollView>
 
