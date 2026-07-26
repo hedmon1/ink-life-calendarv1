@@ -17,6 +17,7 @@
     ],
     "ios": {
       "supportsTablet": true,
+      "appleTeamId": "3ZNRF29847",
       "bundleIdentifier": "com.ink.lifecalendar",
       "buildNumber": "1",
       "config": {
