@@ -24,7 +24,9 @@
         "usesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.security.application-groups": ["group.com.ink.lifecalendar"]
+        "com.apple.security.application-groups": [
+          "group.com.ink.lifecalendar"
+        ]
       },
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Ink lets you attach one photo to the week you're locking into ink.",
@@ -32,7 +34,16 @@
       }
     },
     "android": {
-      "package": "com.ink.lifecalendar"
+      "package": "com.ink.lifecalendar",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro"
@@ -55,6 +66,29 @@
         }
       ],
       "@bacons/apple-targets"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "bundleIdentifier": "com.ink.lifecalendar.widget",
+                  "targetName": "YearProgress",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.ink.lifecalendar"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "44531091-412f-486c-aa0c-f0ca21f527dd"
+      }
+    },
+    "owner": "coffeeteamilk"
   }
 }
