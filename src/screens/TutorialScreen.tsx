@@ -154,25 +154,6 @@ function MiniCheckin() {
   );
 }
 
-function MiniDetail() {
-  return (
-    <View style={{ width: '100%', backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 12, overflow: 'hidden' }}>
-      <Image source={{ uri: picsum('ink42', 240, 144) }} style={{ width: '100%', height: 104, backgroundColor: C.pencil }} />
-      <View style={{ padding: 12 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <Mono size={8.5} spacing={0.16} color={C.muted}>
-            WK 1,460
-          </Mono>
-          <Stars value={5} size={13} />
-        </View>
-        <Serif size={14} italic color={C.ink}>
-          “Signed the office lease. Pencil becomes ink.”
-        </Serif>
-      </View>
-    </View>
-  );
-}
-
 function MiniWidget() {
   return (
     <View style={{ alignItems: 'center', gap: 10 }}>
@@ -196,49 +177,43 @@ const STEPS: Step[] = [
     visual: <MiniGrid />,
     kicker: 'THE GRID',
     title: 'Every box is one week.',
-    body: 'About 4,160 in a life. Black is inked, pale is pencil — green is where you started.',
+    body: 'About 4,160 in a life. Black is inked, pale is ahead.',
   },
   {
     visual: <MiniThisWeek />,
     kicker: 'THIS WEEK',
     title: 'Your week, at a glance.',
-    body: 'The week you’re living, and what’s left of each window.',
+    body: 'Where you are, and what’s left.',
   },
   {
     visual: <MiniWindows />,
     kicker: 'THE WINDOWS',
     title: 'Two windows are closing.',
-    body: 'Prime (amber) closes around 35. Proximity (slate) is the weeks left near your people.',
+    body: 'Prime (amber) closes around 35. Proximity (slate) is time left near your people.',
   },
   {
     visual: <MiniGoal />,
     kicker: 'GOALS',
     title: 'One goal at a time.',
-    body: 'Set it in weeks. The bar fills as they pass — mark it done before it runs out.',
+    body: 'Set it in weeks. Mark it done before time runs out.',
   },
   {
     visual: <MiniCheckin />,
     kicker: 'THE CHECK-IN',
     title: 'Check in once a week.',
-    body: 'A photo, a rating, one sentence. It locks into ink and sets your check-in day.',
+    body: 'A photo, a rating, one sentence — locked into ink.',
   },
   {
     visual: <MiniMemories />,
     kicker: 'MEMORIES',
-    title: 'Every photo, kept.',
-    body: 'Each photographed week in one place — search by week or word.',
-  },
-  {
-    visual: <MiniDetail />,
-    kicker: 'LOOK BACK',
     title: 'Ink is ink.',
-    body: 'Tap any inked week to reopen it. No edits, no deletions.',
+    body: 'Every photo kept. Tap any inked week to reopen it.',
   },
   {
     visual: <MiniWidget />,
     kicker: 'ON YOUR PHONE',
     title: 'It lives on your screen.',
-    body: 'Add the widget — a square inks itself every week. Or make the grid your wallpaper from the Grid tab.',
+    body: 'Add the widget, or make the grid your wallpaper.',
   },
 ];
 

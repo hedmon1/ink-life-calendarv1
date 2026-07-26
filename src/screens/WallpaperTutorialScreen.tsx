@@ -37,33 +37,33 @@ type Step = { kicker: string; title: string; body: string; visual: (birthYear: n
 
 const STEPS: Step[] = [
   {
-    kicker: 'THE IDEA',
-    title: 'Set it once. It ticks forever.',
-    body: 'Every week iOS asks Ink for the freshest grid and sets it as your wallpaper — automatic even if you never open the app. Apple only requires this one-time setup.',
+    kicker: 'HOW IT WORKS',
+    title: 'Set it up once.',
+    body: 'A weekly automation asks Ink for a fresh grid and sets it as your lock screen.',
     visual: (by) => <PhonePreview birthYear={by} />,
   },
   {
-    kicker: 'STEP 1 · AUTOMATION',
-    title: 'Create a weekly automation.',
-    body: 'Shortcuts app → Automation → ＋ → Time of Day → Weekly, pick any day and time → choose “Run Immediately”.',
-    visual: () => <MiniCard lines={['SHORTCUTS → AUTOMATION', '→ ＋ NEW', '→ TIME OF DAY · WEEKLY', '→ RUN IMMEDIATELY']} />,
+    kicker: 'STEP 1',
+    title: 'Make a weekly automation.',
+    body: 'Open Shortcuts → Automation → ＋ → Time of Day. Set it to Weekly, pick a day, then choose Run Immediately.',
+    visual: () => <MiniCard lines={['SHORTCUTS', '→ AUTOMATION → ＋', '→ TIME OF DAY · WEEKLY', '→ RUN IMMEDIATELY']} />,
   },
   {
-    kicker: 'STEP 2 · INK',
+    kicker: 'STEP 2',
     title: 'Add the Ink action.',
-    body: 'In the automation, search actions for “Ink” and add “Get This Week’s Grid”.',
-    visual: () => <MiniCard lines={['SEARCH ACTIONS: “INK”', '→ GET THIS WEEK’S GRID']} />,
+    body: 'Search the actions for “Ink”, then add Get This Week’s Grid.',
+    visual: () => <MiniCard lines={['SEARCH: “INK”', '→ GET THIS WEEK’S GRID']} />,
   },
   {
-    kicker: 'STEP 3 · WALLPAPER',
-    title: 'Add “Set Wallpaper”.',
-    body: 'Add the “Set Wallpaper” action right after, pick Lock Screen, and turn off Show Preview. Done — it now runs weekly on its own.',
+    kicker: 'STEP 3',
+    title: 'Add Set Wallpaper.',
+    body: 'Add Set Wallpaper underneath it. Choose Lock Screen, then turn off Show Preview.',
     visual: () => <MiniCard lines={['→ SET WALLPAPER', '→ LOCK SCREEN', 'SHOW PREVIEW: OFF']} />,
   },
   {
     kicker: 'DONE',
-    title: 'Every week, by itself.',
-    body: 'If the Ink action doesn’t appear, use “Get Latest Photos” from the “Ink” album instead. Looks zoomed? Hold the Lock Screen → Customize → pinch the image to fit.',
+    title: 'That’s it.',
+    body: 'Your lock screen now updates itself every week. Zoomed in? Hold the Lock Screen → Customize → pinch to fit.',
     visual: (by) => <PhonePreview birthYear={by} />,
   },
 ];
