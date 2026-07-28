@@ -23,70 +23,157 @@ struct YearProvider: TimelineProvider {
   }
 }
 
-// fraction of the calendar year elapsed (0…1)
-func yearFraction(_ date: Date) -> Double {
-  let cal = Calendar.current
-  let y = cal.component(.year, from: date)
-  guard
-    let start = cal.date(from: DateComponents(year: y, month: 1, day: 1)),
-    let next = cal.date(from: DateComponents(year: y + 1, month: 1, day: 1))
-  else { return 0 }
-  let total = next.timeIntervalSince(start)
-  let elapsed = date.timeIntervalSince(start)
-  return min(1, max(0, elapsed / total))
+// MARK: - Year math
+
+struct YearStats {
+  let year: Int
+  let fraction: Double // 0…1 of the year elapsed
+  let inkedWeeks: Int  // completed weeks this year (0…52)
+  let daysLeft: Int
 }
 
-// MARK: - View
+func yearStats(_ date: Date) -> YearStats {
+  let cal = Calendar.current
+  let year = cal.component(.year, from: date)
+  let dayOfYear = cal.ordinality(of: .day, in: .year, for: date) ?? 1
+  let totalDays = cal.range(of: .day, in: .year, for: date)?.count ?? 365
+  return YearStats(
+    year: year,
+    fraction: min(1, max(0, Double(dayOfYear) / Double(totalDays))),
+    inkedWeeks: min(52, (dayOfYear - 1) / 7),
+    daysLeft: max(0, totalDays - dayOfYear)
+  )
+}
+
+// MARK: - Pieces
+
+private let indigo = Color(red: 0.369, green: 0.416, blue: 0.824) // #5e6ad2
+private let track = Color(white: 0.16)
+
+struct ProgressRing: View {
+  let fraction: Double
+  let size: CGFloat
+  let lineWidth: CGFloat
+  let fontSize: CGFloat
+
+  var body: some View {
+    ZStack {
+      Circle().stroke(track, lineWidth: lineWidth)
+      Circle()
+        .trim(from: 0, to: fraction)
+        .stroke(indigo, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+        .rotationEffect(.degrees(-90))
+      Text("\(Int((fraction * 100).rounded()))%")
+        .font(.system(size: fontSize, weight: .semibold))
+        .foregroundColor(.white)
+    }
+    .frame(width: size, height: size)
+  }
+}
+
+/// The 52 weeks of the year as a 26×2 strip — filled, outlined (this week), or faint.
+struct YearWeekStrip: View {
+  let inked: Int
+
+  var body: some View {
+    Canvas { ctx, size in
+      let cols = 26
+      let rows = 2
+      let gap: CGFloat = 3
+      let cell = min(
+        (size.width - CGFloat(cols - 1) * gap) / CGFloat(cols),
+        (size.height - gap) / CGFloat(rows)
+      )
+      let xOff = (size.width - (CGFloat(cols) * cell + CGFloat(cols - 1) * gap)) / 2
+      let current = min(51, inked)
+      for i in 0..<(cols * rows) {
+        let x = xOff + CGFloat(i % cols) * (cell + gap)
+        let y = CGFloat(i / cols) * (cell + gap)
+        let rect = CGRect(x: x, y: y, width: cell, height: cell)
+        let path = Path(roundedRect: rect, cornerRadius: cell * 0.25)
+        if i == current {
+          ctx.stroke(path, with: .color(indigo), lineWidth: 1.5)
+        } else if i < inked {
+          ctx.fill(path, with: .color(Ink.ink))
+        } else {
+          ctx.fill(path, with: .color(Ink.pencil))
+        }
+      }
+    }
+  }
+}
+
+// MARK: - Views
 
 struct YearWidgetView: View {
   var entry: YearEntry
-
-  private let bg = Color(red: 0.031, green: 0.035, blue: 0.039)   // #08090a
-  private let gold = Color(red: 0.910, green: 0.722, blue: 0.294) // #e8b84b
-  private let dim = Color(white: 0.52)
-  private let track = Color(white: 0.16)
+  @Environment(\.widgetFamily) var family
 
   var body: some View {
-    let f = yearFraction(entry.date)
-    let pct = Int((f * 100).rounded())
-    let year = Calendar.current.component(.year, from: entry.date)
-
-    VStack(alignment: .leading, spacing: 0) {
-      Text(String(year))
-        .font(.system(size: 11, weight: .medium, design: .monospaced))
-        .tracking(2)
-        .foregroundColor(dim)
-
-      Spacer(minLength: 6)
-
-      HStack(alignment: .firstTextBaseline, spacing: 1) {
-        Text("\(pct)")
-          .font(.system(size: 46, weight: .semibold))
-          .foregroundColor(.white)
-        Text("%")
-          .font(.system(size: 22, weight: .medium))
-          .foregroundColor(.white)
-      }
-
-      Text("OF THE YEAR GONE")
-        .font(.system(size: 8.5, weight: .medium, design: .monospaced))
-        .tracking(1.4)
-        .foregroundColor(dim)
-        .padding(.top, 1)
-
-      Spacer(minLength: 10)
-
-      GeometryReader { geo in
-        ZStack(alignment: .leading) {
-          Capsule().fill(track)
-          Capsule().fill(gold).frame(width: max(4, geo.size.width * f))
+    let s = yearStats(entry.date)
+    if family == .systemMedium {
+      VStack(alignment: .leading, spacing: 0) {
+        HStack(alignment: .firstTextBaseline) {
+          Text(String(s.year))
+            .font(.system(size: 24, weight: .bold))
+            .foregroundColor(.white)
+          Spacer()
+          Text("THE YEAR IN INK")
+            .font(.system(size: 8.5, weight: .medium, design: .monospaced))
+            .tracking(1.6)
+            .foregroundColor(Ink.dim)
         }
+
+        Spacer(minLength: 8)
+
+        HStack(spacing: 16) {
+          ProgressRing(fraction: s.fraction, size: 54, lineWidth: 7, fontSize: 15)
+          VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 5) {
+              Text("\(s.inkedWeeks)")
+                .font(.system(size: 26, weight: .bold))
+                .foregroundColor(.white)
+              Text("/ 52 WEEKS")
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .tracking(1)
+                .foregroundColor(Ink.dim)
+            }
+            Text("\(s.daysLeft) DAYS LEFT")
+              .font(.system(size: 8.5, weight: .medium, design: .monospaced))
+              .tracking(1.2)
+              .foregroundColor(Ink.dim)
+          }
+          Spacer(minLength: 0)
+        }
+
+        Spacer(minLength: 10)
+
+        YearWeekStrip(inked: s.inkedWeeks)
+          .frame(height: 21)
       }
-      .frame(height: 5)
+      .padding(16)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .widgetBackground(Ink.bg)
+    } else {
+      VStack(spacing: 8) {
+        HStack {
+          Text(String(s.year))
+            .font(.system(size: 15, weight: .bold))
+            .foregroundColor(.white)
+          Spacer()
+        }
+        Spacer(minLength: 0)
+        ProgressRing(fraction: s.fraction, size: 64, lineWidth: 8, fontSize: 18)
+        Spacer(minLength: 0)
+        Text("\(s.inkedWeeks) / 52 WEEKS")
+          .font(.system(size: 8.5, weight: .medium, design: .monospaced))
+          .tracking(1.2)
+          .foregroundColor(Ink.dim)
+      }
+      .padding(14)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .widgetBackground(Ink.bg)
     }
-    .padding(16)
-    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    .widgetBackground(bg)
   }
 }
 
@@ -112,7 +199,7 @@ struct InkYearWidget: Widget {
       YearWidgetView(entry: entry)
     }
     .configurationDisplayName("Year Progress")
-    .description("How much of the year has passed.")
+    .description("The year in ink — weeks lived, days left.")
     .supportedFamilies([.systemSmall, .systemMedium])
   }
 }

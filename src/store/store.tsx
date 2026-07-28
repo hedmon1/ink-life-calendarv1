@@ -4,6 +4,7 @@ import { clampBirthYear, lifeCalc, LifeCalc } from '../lib/calc';
 import { writeWidgetData } from '../lib/extensionStorage';
 import { goalPhase } from '../lib/goals';
 import { ensureNotificationPermission, scheduleCheckinReminders, setupNotifications } from '../lib/notifications';
+import { repairPhotoRecords } from '../lib/photoStore';
 import { buildSeed } from './seed';
 import { AppState, Goal, WeekRecord } from './types';
 
@@ -12,7 +13,7 @@ const STORAGE_KEY = 'ink.state.v8';
 const DEFAULT_STATE: AppState = {
   birthYear: 1998,
   proximityWeeks: 86,
-  overlays: { prime: true, prox: false },
+  overlays: { prime: false, prox: false },
   goals: [],
   records: [],
   onboarded: false,
@@ -20,6 +21,7 @@ const DEFAULT_STATE: AppState = {
   lastCheckinAt: null,
   tutorialSeen: false,
   installWeekIndex: null,
+  installedAt: null,
   lastWallpaperWeek: null,
   wallpaperReminders: false,
 };
@@ -95,6 +97,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!ready) return;
     writeWidgetData(state.birthYear);
   }, [ready, state.birthYear]);
+
+  // stamp the first-ever open — this anchors the free trial and syncs to the
+  // user's cloud backup, so deleting and reinstalling doesn't reset it
+  useEffect(() => {
+    if (!ready) return;
+    if (stateRef.current.installedAt == null) {
+      setState((s) => (s.installedAt == null ? { ...s, installedAt: Date.now() } : s));
+    }
+  }, [ready]);
+
+  // once per launch: migrate photos stored as absolute temp URIs (they break on
+  // every app update) into permanent storage, pruning refs whose file is gone
+  const repaired = useRef(false);
+  useEffect(() => {
+    if (!ready || repaired.current) return;
+    repaired.current = true;
+    repairPhotoRecords(stateRef.current.records)
+      .then((fixed) => {
+        if (fixed) setState((s) => ({ ...s, records: fixed }));
+      })
+      .catch(() => {});
+  }, [ready]);
 
   const calc = useMemo(() => lifeCalc(state.birthYear, state.proximityWeeks), [state.birthYear, state.proximityWeeks]);
 

@@ -39,14 +39,24 @@ enum InkWallpaperRenderer {
   static let gapR: CGFloat = 0.28   // thin gap between cells (× cell)
   static let blockR: CGFloat = 0.95 // wider gap between blocks (× cell)
 
-  static func render() -> UIImage {
-    // the app writes the device's pixel size into the App Group on launch;
-    // fall back to a 3x 6.1" frame if it hasn't yet
+  /// This device's exact screen size in pixels, read live at render time —
+  /// the image matches the screen 1:1, so iOS never scales or crops it and the
+  /// centered grid stays centered on every device, even if the app has never
+  /// been opened. The App Group copy written by the app is only a fallback.
+  static func targetSize() -> CGSize {
+    let native = UIScreen.main.nativeBounds.size // pixels, portrait-up on every device
+    if native.width > 300 && native.height > 600 { return native }
     let defaults = UserDefaults(suiteName: Ink.appGroup)
-    let storedW = defaults?.integer(forKey: "wallW") ?? 0
-    let storedH = defaults?.integer(forKey: "wallH") ?? 0
-    let W = CGFloat(storedW > 300 ? storedW : 1179)
-    let H = CGFloat(storedH > 600 ? storedH : 2556)
+    let w = defaults?.integer(forKey: "wallW") ?? 0
+    let h = defaults?.integer(forKey: "wallH") ?? 0
+    if w > 300 && h > 600 { return CGSize(width: w, height: h) }
+    return CGSize(width: 1179, height: 2556) // 6.1" 3x frame, last resort
+  }
+
+  static func render() -> UIImage {
+    let size = targetSize()
+    let W = size.width
+    let H = size.height
 
     let lived = Ink.lived(Ink.birthYear())
     let cols = Ink.weeksPerYear

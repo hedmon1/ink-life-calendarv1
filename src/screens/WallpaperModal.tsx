@@ -19,27 +19,21 @@ export function WallpaperModal() {
   const screen = Dimensions.get('screen');
   const shotRef = useRef<View>(null);
   const [saving, setSaving] = useState(false);
-  const enabled = state.lastWallpaperWeek != null;
 
   const previewW = Math.min(190, screen.width * 0.5);
   const previewH = previewW * (screen.height / screen.width);
 
-  // Save this week's grid to the Ink album; this also switches on the weekly
-  // auto-refresh (WallpaperAutoUpdater re-captures each new week), then walks the
-  // user through the one-time Shortcut that applies it automatically.
-  const enableAuto = async () => {
+  // The auto route needs no Photos access at all — the Shortcut renders the grid
+  // itself. Saving to Photos is the manual fallback (and switches on the weekly
+  // album refresh via WallpaperAutoUpdater for people who set it by hand).
+  const saveToPhotos = async () => {
     setSaving(true);
     const r = await captureAndSaveWallpaper(shotRef);
     setSaving(false);
     if (r === 'saved') {
-      const firstTime = state.lastWallpaperWeek == null;
       markWallpaperSaved(currentWeekIndex(state.birthYear));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      if (firstTime) {
-        nav.navigate('WallpaperTutorial');
-      } else {
-        Alert.alert('Grid saved', 'This week’s grid is in your “Ink” album. Your weekly Shortcut will apply it.');
-      }
+      Alert.alert('Grid saved', 'This week’s grid is in Photos, in the “Ink” album. Set it from Settings → Wallpaper.');
     } else if (r === 'denied') {
       Alert.alert('Photos access needed', 'Allow photo access in Settings so Ink can save the wallpaper image.');
     } else {
@@ -70,23 +64,18 @@ export function WallpaperModal() {
             AUTO-UPDATING WALLPAPER
           </Mono>
           <Serif size={14.5} color={C.body} style={{ lineHeight: 22, marginBottom: 16 }}>
-            Set it up once. Every week iOS asks Ink for the newest grid and applies it by itself — even if you never open the app.
+            A two-minute Shortcut, set up once. iOS then redraws your wallpaper every week by itself — sized and centered for this exact screen.
           </Serif>
-          <Pressable onPress={enableAuto} disabled={saving} style={{ backgroundColor: C.ink, borderRadius: 9, paddingVertical: 15, alignItems: 'center', opacity: saving ? 0.6 : 1 }}>
+          <Pressable onPress={() => nav.navigate('WallpaperTutorial')} style={{ backgroundColor: C.ink, borderRadius: 9, paddingVertical: 15, alignItems: 'center' }}>
             <Mono size={10.5} spacing={0.16} color={C.paper}>
-              {saving ? 'SAVING…' : enabled ? 'SAVE THIS WEEK’S GRID' : 'SET UP AUTO WALLPAPER'}
+              SET UP AUTO WALLPAPER →
             </Mono>
           </Pressable>
-          <Pressable onPress={() => nav.navigate('WallpaperTutorial')} style={{ paddingVertical: 12, alignItems: 'center' }}>
+          <Pressable onPress={saveToPhotos} disabled={saving} style={{ paddingVertical: 12, alignItems: 'center', opacity: saving ? 0.6 : 1 }}>
             <Mono size={9} spacing={0.14} color={C.muted}>
-              {enabled ? 'REVIEW SHORTCUT SETUP →' : 'HOW IT WORKS →'}
+              {saving ? 'SAVING…' : 'OR SAVE THIS WEEK’S GRID TO PHOTOS'}
             </Mono>
           </Pressable>
-          {enabled && (
-            <Mono size={8.5} spacing={0.12} color={C.faint} style={{ textAlign: 'center', marginTop: 2 }}>
-              ON · FULLY AUTOMATIC AFTER SETUP
-            </Mono>
-          )}
         </View>
 
         {/* option 2 — widget */}

@@ -10,9 +10,10 @@ import {
 } from 'firebase/auth';
 import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { FOUNDER_DEADLINE_MS, TRIAL_MS } from '../config/appConfig';
+import { FOUNDER_DEADLINE_MS, TRIAL_DAYS, TRIAL_MS } from '../config/appConfig';
 import { fbAuth, fbDb, isFirebaseConfigured } from '../lib/firebase';
 import { hasActiveSubscription, initPurchases } from '../lib/purchases';
+import { useStore } from './store';
 
 export type Profile = {
   email: string;
@@ -43,18 +44,22 @@ type AuthCtx = {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
-function computeEntitlement(configured: boolean, profile: Profile | null, subscribed: boolean): Entitlement {
+function computeEntitlement(configured: boolean, profile: Profile | null, subscribed: boolean, installedAt: number | null): Entitlement {
   if (!configured) return { status: 'dev', trialDaysLeft: 0 };
-  if (!profile) return { status: 'trial', trialDaysLeft: 14 }; // resolving — never flash the paywall
-  if (profile.founder) return { status: 'lifetime', trialDaysLeft: 0 };
+  if (profile?.founder) return { status: 'lifetime', trialDaysLeft: 0 };
   if (subscribed) return { status: 'subscribed', trialDaysLeft: 0 };
-  const left = profile.createdAt + TRIAL_MS - Date.now();
+  // one month from the FIRST APP OPEN; the account's createdAt is a server-side
+  // backstop so wiping and reinstalling can't restart the clock
+  const anchors = [installedAt, profile?.createdAt].filter((n): n is number => typeof n === 'number');
+  if (anchors.length === 0) return { status: 'trial', trialDaysLeft: TRIAL_DAYS }; // still resolving — never flash the paywall
+  const left = Math.min(...anchors) + TRIAL_MS - Date.now();
   if (left > 0) return { status: 'trial', trialDaysLeft: Math.max(1, Math.ceil(left / 86400000)) };
   return { status: 'expired', trialDaysLeft: 0 };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const configured = isFirebaseConfigured;
+  const { state: inkState } = useStore();
   const [user, setUser] = useState<{ uid: string; email: string } | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subscribed, setSubscribed] = useState(false);
@@ -128,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (u) await loadProfile(u).catch(() => {});
   }, [loadProfile]);
 
-  const entitlement = computeEntitlement(configured, user ? profile : null, subscribed);
+  const entitlement = computeEntitlement(configured, user ? profile : null, subscribed, inkState.installedAt);
 
   return (
     <Ctx.Provider value={{ configured, authReady, user, profile, entitlement, signUp, signIn, signOutUser, deleteAccount, refreshEntitlement }}>

@@ -8,6 +8,7 @@ import { Screen } from '../components/Screen';
 import { Stars } from '../components/Stars';
 import { Mono, Serif } from '../components/Type';
 import { fmt } from '../lib/calc';
+import { resolvePhotoUri } from '../lib/photoStore';
 import { RootStackParamList } from '../navigation/types';
 import { useStore } from '../store/store';
 import { WeekRecord } from '../store/types';
@@ -146,7 +147,7 @@ export function MemoriesScreen() {
           {q.length === 0 && featured && (
             <Pressable onPress={() => nav.navigate('WeekDetail', { weekIndex: featured.weekIndex })}>
               <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
-                <Image source={{ uri: featured.photos[0] }} style={{ width: '100%', height: 150, backgroundColor: C.pencil }} />
+                <Image source={{ uri: resolvePhotoUri(featured.photos[0]) }} style={{ width: '100%', height: 150, backgroundColor: C.pencil }} />
                 <View style={{ padding: 14 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                     <Mono size={9} spacing={0.16}>
@@ -179,7 +180,7 @@ function MemoryTile({ record, onPress }: { record: WeekRecord; onPress: () => vo
   return (
     <Pressable onPress={onPress} style={{ width: '48.5%', marginBottom: 10 }}>
       <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 10, overflow: 'hidden' }}>
-        <Image source={{ uri: record.photos[0] }} style={{ width: '100%', height: 86, backgroundColor: C.pencil }} />
+        <Image source={{ uri: resolvePhotoUri(record.photos[0]) }} style={{ width: '100%', height: 86, backgroundColor: C.pencil }} />
         <View style={{ paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Mono size={8} spacing={0.12}>
             WK {fmt(record.weekIndex + 1)}

@@ -68,7 +68,8 @@ struct InkGridView: View {
             let y = yOff + CGFloat(r) * (cell + gap)
             let rect = CGRect(x: x, y: y, width: cell, height: cell)
             let path = Path(roundedRect: rect, cornerRadius: cell * 0.22)
-            switch inkCell(i, lived: lived, prime: true) {
+            // no prime band — matches the app's default grid and the wallpaper
+            switch inkCell(i, lived: lived, prime: false) {
             case .inked:
               ctx.fill(path, with: .color(Ink.ink))
             case .thisWeek:

@@ -10,6 +10,7 @@ import { Mono, Serif } from '../components/Type';
 import { fmt, todayLabel } from '../lib/calc';
 import { checkinInfo } from '../lib/checkin';
 import { goalCurrentWeek, goalProgress } from '../lib/goals';
+import { resolvePhotoUri } from '../lib/photoStore';
 import { checkinStreak } from '../lib/streak';
 import { RootStackParamList } from '../navigation/types';
 import { useStore } from '../store/store';
@@ -151,7 +152,7 @@ export function ThisWeekScreen() {
       {memory && (
         <Pressable onPress={() => nav.navigate('WeekDetail', { weekIndex: memory.weekIndex })} style={{ marginTop: 12 }}>
           <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 }}>
-            <Image source={{ uri: memory.photos[0] }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.pencil }} />
+            <Image source={{ uri: resolvePhotoUri(memory.photos[0]) }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.pencil }} />
             <View style={{ flex: 1 }}>
               <Mono size={8.5} spacing={0.16} color={C.muted} style={{ marginBottom: 3 }}>
                 {memory.weekIndex === calc.lived - 52 ? 'ONE YEAR AGO' : `FROM WEEK ${fmt(memory.weekIndex + 1)}`}

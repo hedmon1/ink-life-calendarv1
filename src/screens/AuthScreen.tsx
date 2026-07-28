@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mono, Serif } from '../components/Type';
-import { FOUNDER_DEADLINE_LABEL, FOUNDER_DEADLINE_MS, TRIAL_DAYS } from '../config/appConfig';
+import { FOUNDER_DEADLINE_LABEL, FOUNDER_DEADLINE_MS } from '../config/appConfig';
 import { useAuth } from '../store/auth';
 import { C } from '../theme';
 
@@ -123,7 +123,7 @@ export function AuthScreen() {
 
         {mode === 'up' && (
           <Mono size={8.5} spacing={0.12} color={C.faint} style={{ textAlign: 'center', marginTop: 14, lineHeight: 14 }}>
-            {TRIAL_DAYS} DAYS FREE · THEN A SUBSCRIPTION KEEPS INK RUNNING
+            ONE MONTH FREE · THEN A SUBSCRIPTION KEEPS INK RUNNING
           </Mono>
         )}
 

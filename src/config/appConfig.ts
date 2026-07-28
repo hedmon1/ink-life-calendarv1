@@ -1,7 +1,10 @@
 // Product + business configuration. Everything a launch needs to tune lives here.
 
-/** Free trial length — the app locks behind the paywall after this. */
-export const TRIAL_DAYS = 14;
+/**
+ * Free trial length — one month, counted from the FIRST APP OPEN (not account
+ * creation). The app locks behind the paywall after this.
+ */
+export const TRIAL_DAYS = 30;
 export const TRIAL_MS = TRIAL_DAYS * 86400000;
 
 /**

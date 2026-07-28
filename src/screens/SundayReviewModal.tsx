@@ -9,6 +9,7 @@ import { Stars } from '../components/Stars';
 import { Mono, Serif } from '../components/Type';
 import { fmt } from '../lib/calc';
 import { goalCurrentWeek, isGoalFinalWeek } from '../lib/goals';
+import { persistPhoto, resolvePhotoUri } from '../lib/photoStore';
 import { CURRENT_WEEK_DRAFT } from '../store/seed';
 import { useStore } from '../store/store';
 import { C } from '../theme';
@@ -33,9 +34,12 @@ export function SundayReviewModal() {
     if (!res.canceled && res.assets[0]) setPhotos((p) => [...p, res.assets[0].uri].slice(0, 3));
   };
 
-  const lock = () => {
+  const lock = async () => {
     Keyboard.dismiss();
-    lockCurrentWeek({ sentence, rating, photos });
+    // move picked photos out of the temp cache into permanent storage — temp
+    // URIs die on every app update (the grey-rectangle bug)
+    const persisted = await Promise.all(photos.map((p, i) => persistPhoto(p, calc.lived, i)));
+    lockCurrentWeek({ sentence, rating, photos: persisted });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     setCelebrating(true); // brief pencil→ink moment, then the modal closes itself
   };
@@ -102,7 +106,7 @@ export function SundayReviewModal() {
           </Mono>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
             {photos.map((uri, i) => (
-              <Image key={i} source={{ uri }} style={{ width: 96, height: 96, borderRadius: 8, borderWidth: 1, borderColor: C.cardLine, backgroundColor: C.pencil }} />
+              <Image key={i} source={{ uri: resolvePhotoUri(uri) }} style={{ width: 96, height: 96, borderRadius: 8, borderWidth: 1, borderColor: C.cardLine, backgroundColor: C.pencil }} />
             ))}
             {photos.length < 3 && (
               <Pressable

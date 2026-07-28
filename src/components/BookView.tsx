@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Animated, Image, PanResponder, Pressable, useWindowDimensions, View } from 'react-native';
 import { fmt, weekDateRange } from '../lib/calc';
+import { resolvePhotoUri } from '../lib/photoStore';
 import { WeekRecord } from '../store/types';
 import { C } from '../theme';
 import { Stars } from './Stars';
@@ -166,7 +167,7 @@ function Page({ record, birthYear, onOpen, h }: { record: WeekRecord; birthYear:
     <Pressable onPress={() => onOpen(record.weekIndex)} style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 16, overflow: 'hidden' }}>
         {record.photos[0] ? (
-          <Image source={{ uri: record.photos[0] }} style={{ width: '100%', height: photoH, backgroundColor: C.pencil }} />
+          <Image source={{ uri: resolvePhotoUri(record.photos[0]) }} style={{ width: '100%', height: photoH, backgroundColor: C.pencil }} />
         ) : (
           <View style={{ width: '100%', height: Math.round(photoH * 0.5), backgroundColor: C.pencil, alignItems: 'center', justifyContent: 'center' }}>
             <Mono size={9} spacing={0.16} color={C.faint}>

@@ -4,11 +4,11 @@ import { Dimensions, PixelRatio, Platform } from 'react-native';
 export const APP_GROUP = 'group.com.ink.lifecalendar';
 
 /**
- * Write the birth year (plus the device's pixel size, used by the wallpaper
- * App Intent to render at exact lock-screen resolution) into the shared App
- * Group, then reload the widgets. Only static values cross the boundary — the
- * Swift side computes lived/this-week itself on each refresh, so everything
- * keeps ticking even if the app is never opened.
+ * Write the birth year (plus the device's pixel size — only a FALLBACK for the
+ * wallpaper App Intent, which reads the screen size natively at render time)
+ * into the shared App Group, then reload the widgets. Only static values cross
+ * the boundary — the Swift side computes lived/this-week itself on each
+ * refresh, so everything keeps ticking even if the app is never opened.
  *
  * No-op on Android/web and in Expo Go (the native module only exists in a dev build).
  */

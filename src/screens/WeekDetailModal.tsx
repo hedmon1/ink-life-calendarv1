@@ -6,6 +6,7 @@ import { ModalShell } from '../components/ModalShell';
 import { Stars } from '../components/Stars';
 import { Mono, Serif } from '../components/Type';
 import { fmt, weekDateRange } from '../lib/calc';
+import { resolvePhotoUri } from '../lib/photoStore';
 import { RootStackParamList } from '../navigation/types';
 import { useStore } from '../store/store';
 import { C } from '../theme';
@@ -45,7 +46,7 @@ export function WeekDetailModal() {
             )}
 
             {rec.photos.map((uri, i) => (
-              <Image key={i} source={{ uri }} style={{ width: '100%', height: 260, borderRadius: 12, backgroundColor: C.pencil, marginBottom: 14 }} />
+              <Image key={i} source={{ uri: resolvePhotoUri(uri) }} style={{ width: '100%', height: 260, borderRadius: 12, backgroundColor: C.pencil, marginBottom: 14 }} />
             ))}
 
             <Serif size={23} italic style={{ lineHeight: 32, marginBottom: 20 }}>

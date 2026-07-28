@@ -75,7 +75,7 @@ npx eas-cli submit --platform ios --latest
 | 4.8 | Sign in with Apple | **Not required** — only email/password is offered (no third-party login). If you ever add Google login, Apple login becomes mandatory. |
 | 5.1.2 | Privacy policy URL | ⚠️ **(you)** host `store/PRIVACY_POLICY.md` somewhere public (GitHub works) and put the URL in App Store Connect **and** `PRIVACY_URL` in appConfig.ts |
 | — | Terms (EULA) | ✅ uses Apple’s standard EULA link |
-| 2.1 | App completeness / reviewer access | **(you)** in App Review notes: provide a demo login (create one yourself: e.g. review@yourdomain + password). The 14-day trial also means a fresh reviewer account has full access. |
+| 2.1 | App completeness / reviewer access | **(you)** in App Review notes: provide a demo login (create one yourself: e.g. review@yourdomain + password). The one-month trial also means a fresh reviewer install has full access. |
 | 2.3.10 | Accurate metadata | **(you)** screenshots (6.9" + 6.5"), description, keywords. Mention the founding-member offer in the description if you keep it. |
 | 5.1.1 | App Privacy questionnaire | **(you)** declare: **Email address** (account), **User content** (photos/journal — stored on device; text backed up to your servers), **Purchases**. No tracking, no ads → “Data not used to track you.” |
 | — | Export compliance | ✅ `usesNonExemptEncryption: false` already in app.json |
@@ -86,19 +86,21 @@ npx eas-cli submit --platform ios --latest
 
 - **Founding members**: accounts created on/before `FOUNDER_DEADLINE_MS` get
   `founder: true` on their Firestore profile → app is free for life, no paywall ever.
-- **Everyone after**: 14-day trial from account creation (`createdAt`), then the app
+- **Everyone after**: one-month trial from the first app open (`installedAt`, with the
+  account's server-side `createdAt` as a backstop so reinstalls can't reset it), then the app
   locks behind the Paywall until `pro` (via RevenueCat) is active.
 - **No Firebase config** → local dev mode: no gate, no trial (what you have today).
 
 Small print worth knowing:
-- Trial is enforced from the profile `createdAt` stored server-side, so deleting and
-  reinstalling the app does **not** reset it (a new account would).
+- The trial clock is the earlier of the local `installedAt` (synced to the cloud
+  backup) and the profile's server-side `createdAt` — so deleting and reinstalling
+  the app does **not** reset it once an account exists.
 - Photos are stored on-device; account backup covers text/goals/settings (photo
   binaries are not uploaded in v1 — say so in your privacy policy, already drafted).
 
 ## 7. Suggested App Review notes (paste into App Store Connect)
 
-> Ink is a life-calendar journal. New accounts get full access for 14 days, after
+> Ink is a life-calendar journal. New users get full access for one month, after
 > which the Ink Pro subscription ($4.99/month, auto-renewable) is required.
 > Demo account: <email> / <password>. Widgets require adding “Ink — Life in Weeks”
 > from the widget gallery. The wallpaper feature saves an image to Photos; iOS does
