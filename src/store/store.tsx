@@ -22,8 +22,6 @@ const DEFAULT_STATE: AppState = {
   tutorialSeen: false,
   installWeekIndex: null,
   installedAt: null,
-  lastWallpaperWeek: null,
-  wallpaperReminders: false,
 };
 
 type Store = {
@@ -40,8 +38,6 @@ type Store = {
   deleteGoal: (id: string) => void;
   lockCurrentWeek: (input: { sentence: string; rating: number; photos: string[] }) => void;
   clearExampleMemories: () => void;
-  markWallpaperSaved: (weekIndex: number) => void;
-  setWallpaperReminders: (on: boolean) => void;
   /** replace local state with a cloud backup (CloudSync restore) */
   importState: (incoming: AppState) => void;
   reset: () => void;
@@ -90,7 +86,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!ready) return;
     scheduleCheckinReminders(state);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, state.checkinWeekday, state.records, state.birthYear, state.proximityWeeks, state.wallpaperReminders]);
+  }, [ready, state.checkinWeekday, state.records, state.birthYear, state.proximityWeeks]);
 
   // keep the home/lock-screen widgets' shared birth year in sync
   useEffect(() => {
@@ -173,14 +169,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, goals: s.goals.filter((g) => g.id !== id) }));
   }, []);
 
-  const markWallpaperSaved = useCallback((weekIndex: number) => {
-    setState((s) => ({ ...s, lastWallpaperWeek: weekIndex }));
-  }, []);
-
-  const setWallpaperReminders = useCallback((on: boolean) => {
-    setState((s) => ({ ...s, wallpaperReminders: on }));
-  }, []);
-
   const clearExampleMemories = useCallback(() => {
     setState((s) => ({
       ...s,
@@ -246,8 +234,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     deleteGoal,
     lockCurrentWeek,
     clearExampleMemories,
-    markWallpaperSaved,
-    setWallpaperReminders,
     importState,
     reset,
     recordFor,

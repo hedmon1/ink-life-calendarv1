@@ -103,20 +103,6 @@ export async function scheduleCheckinReminders(state: AppState): Promise<void> {
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date, channelId },
       });
     }
-
-    // opt-in: a weekly nudge to refresh the saved wallpaper (repeats on the check-in weekday)
-    if (state.wallpaperReminders && state.lastWallpaperWeek != null) {
-      await Notifications.scheduleNotificationAsync({
-        content: { title: 'Your grid ticked.', body: 'A new week inked. Open Ink to refresh your wallpaper.', sound: false },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-          weekday: state.checkinWeekday + 1, // expo weekday is 1–7 (1 = Sunday)
-          hour: 18,
-          minute: 0,
-          channelId,
-        },
-      });
-    }
   } catch {
     // notifications are best-effort
   }

@@ -79,7 +79,7 @@ export function PaywallScreen() {
         <View style={{ gap: 10, marginBottom: 26 }}>
           <Line text="The full grid, check-ins, goals and memories" />
           <Line text="Cloud backup — your weeks follow your account" />
-          <Line text="Live widgets and the weekly wallpaper" />
+          <Line text="Live home and lock-screen widgets" />
         </View>
 
         <View style={{ flex: 1 }} />

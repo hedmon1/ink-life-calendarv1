@@ -14,9 +14,8 @@ import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { SundayReviewModal } from '../screens/SundayReviewModal';
 import { ThisWeekScreen } from '../screens/ThisWeekScreen';
 import { TutorialScreen } from '../screens/TutorialScreen';
-import { WallpaperModal } from '../screens/WallpaperModal';
-import { WallpaperTutorialScreen } from '../screens/WallpaperTutorialScreen';
 import { WeekDetailModal } from '../screens/WeekDetailModal';
+import { WidgetModal } from '../screens/WidgetModal';
 import { useAuth } from '../store/auth';
 import { useStore } from '../store/store';
 import { C } from '../theme';
@@ -64,8 +63,7 @@ export function RootNavigator() {
             <Stack.Screen name="Info" component={InfoModal} />
             <Stack.Screen name="Tutorial" component={TutorialScreen} />
             <Stack.Screen name="NewGoal" component={NewGoalModal} />
-            <Stack.Screen name="Wallpaper" component={WallpaperModal} />
-            <Stack.Screen name="WallpaperTutorial" component={WallpaperTutorialScreen} />
+            <Stack.Screen name="Widgets" component={WidgetModal} />
             <Stack.Screen name="Account" component={AccountModal} />
             <Stack.Screen name="Paywall" component={PaywallScreen} />
           </Stack.Group>

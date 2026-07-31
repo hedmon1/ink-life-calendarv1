@@ -11,6 +11,7 @@ const QUARTER = 13;
 const DECADE = 10;
 export const BLOCK_GAP = 4; // extra gap between sub-grids (both axes)
 export const HBLOCKS = Math.floor((WEEKS_PER_YEAR - 1) / QUARTER); // inter-block gaps per row (3)
+export const VBLOCKS = Math.floor((TOTAL_WEEKS / WEEKS_PER_YEAR - 1) / DECADE); // per column (7)
 
 const LABEL_STYLE = { fontFamily: F.mono, fontSize: 9, color: C.faint, letterSpacing: 0.5 } as const;
 
@@ -47,6 +48,8 @@ export type LifeGridProps = {
   installWeek?: number | null;
   cell?: number;
   gap?: number;
+  /** separation between the 13-week / 10-year blocks; scales with the cell when the grid is fitted */
+  blockGap?: number;
 };
 
 function classify(i: number, p: LifeGridProps): CellKind {
@@ -61,7 +64,8 @@ function classify(i: number, p: LifeGridProps): CellKind {
 function LifeGridImpl(props: LifeGridProps) {
   const { width } = useWindowDimensions();
   const gap = props.gap ?? 1.4;
-  const auto = Math.max(4, Math.floor((Math.min(width, 460) - 44 - GRID_LABEL_GUTTER - HBLOCKS * BLOCK_GAP - (WEEKS_PER_YEAR - 1) * gap) / WEEKS_PER_YEAR));
+  const blockGap = props.blockGap ?? BLOCK_GAP;
+  const auto = Math.max(4, Math.floor((Math.min(width, 460) - 44 - GRID_LABEL_GUTTER - HBLOCKS * blockGap - (WEEKS_PER_YEAR - 1) * gap) / WEEKS_PER_YEAR));
   const size = props.cell ?? auto;
   const { recordWeeks, onCellPress } = props;
   const years = TOTAL_WEEKS / WEEKS_PER_YEAR; // 80
@@ -88,7 +92,7 @@ function LifeGridImpl(props: LifeGridProps) {
           width: size,
           height: size,
           borderRadius: Math.max(1, size * 0.18),
-          marginRight: w === WEEKS_PER_YEAR - 1 ? 0 : (w + 1) % QUARTER === 0 ? BLOCK_GAP : gap,
+          marginRight: w === WEEKS_PER_YEAR - 1 ? 0 : (w + 1) % QUARTER === 0 ? blockGap : gap,
         };
         const tappable = !!(recordWeeks && onCellPress && recordWeeks.has(i));
         if (tappable) {
@@ -99,7 +103,7 @@ function LifeGridImpl(props: LifeGridProps) {
       }
       const decadeStart = y % DECADE === 0;
       out.push(
-        <View key={y} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: gap, marginTop: decadeStart && y !== 0 ? BLOCK_GAP : 0 }}>
+        <View key={y} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: gap, marginTop: decadeStart && y !== 0 ? blockGap : 0 }}>
           {gutter(decadeStart ? y : undefined)}
           {cells}
         </View>
@@ -113,7 +117,7 @@ function LifeGridImpl(props: LifeGridProps) {
     );
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size, gap, years, props.lived, props.prime, props.prox, props.proxLeft, props.primeEnd, props.installWeek, recordWeeks, onCellPress]);
+  }, [size, gap, blockGap, years, props.lived, props.prime, props.prox, props.proxLeft, props.primeEnd, props.installWeek, recordWeeks, onCellPress]);
 
   return <View style={{ alignItems: 'flex-start' }}>{rows}</View>;
 }

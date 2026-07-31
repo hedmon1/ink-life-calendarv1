@@ -164,7 +164,7 @@ function MiniWidget() {
         <MiniGrid />
       </View>
       <Mono size={7.5} spacing={0.14} color={C.faint}>
-        HOME-SCREEN WIDGET · LOCK SCREEN · WALLPAPER
+        HOME-SCREEN WIDGET · LOCK SCREEN
       </Mono>
     </View>
   );
@@ -213,7 +213,7 @@ const STEPS: Step[] = [
     visual: <MiniWidget />,
     kicker: 'ON YOUR PHONE',
     title: 'It lives on your screen.',
-    body: 'Add the widget, or make the grid your wallpaper.',
+    body: 'Add the widget — it inks a new square every week on its own.',
   },
 ];
 

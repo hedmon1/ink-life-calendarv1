@@ -20,8 +20,7 @@ Host this page publicly and link it from the App Store listing and in-app.
 ## What we don't do
 
 - No ads. No analytics trackers. No selling or sharing of personal data.
-- No access to your photo library beyond the photos you explicitly pick, and the
-  wallpaper images the app saves **to** your library at your request.
+- No access to your photo library beyond the photos you explicitly pick.
 
 ## Notifications
 

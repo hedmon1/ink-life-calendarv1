@@ -103,5 +103,4 @@ Small print worth knowing:
 > Ink is a life-calendar journal. New users get full access for one month, after
 > which the Ink Pro subscription ($4.99/month, auto-renewable) is required.
 > Demo account: <email> / <password>. Widgets require adding “Ink — Life in Weeks”
-> from the widget gallery. The wallpaper feature saves an image to Photos; iOS does
-> not allow apps to set wallpapers, so the app provides a Shortcuts guide instead.
+> from the widget gallery.

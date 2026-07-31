@@ -18,7 +18,6 @@ import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { CloudSync } from './src/components/CloudSync';
-import { WallpaperAutoUpdater } from './src/components/WallpaperAutoUpdater';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AuthProvider, useAuth } from './src/store/auth';
 import { StoreProvider, useStore } from './src/store/store';
@@ -36,7 +35,6 @@ function Root() {
   return (
     <NavigationContainer theme={navTheme}>
       <RootNavigator />
-      <WallpaperAutoUpdater />
       <CloudSync />
     </NavigationContainer>
   );
