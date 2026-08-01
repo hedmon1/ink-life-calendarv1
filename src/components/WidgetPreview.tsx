@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { fmt, LIFE_YEARS, TOTAL_WEEKS, WEEKS_PER_YEAR } from '../lib/calc';
 import { C } from '../theme';
-import { Mono } from './Type';
+import { Mono, Serif } from './Type';
 
 // Pixel-faithful mocks of the real widgets so people can see what they're adding.
 // These mirror targets/widget/grid.swift and lock.swift — same header, same
@@ -71,57 +71,70 @@ export function HomeWidgetPreview({ width, lived }: { width: number; lived: numb
   );
 }
 
-/**
- * The lock-screen widget — same shape as the home one (header row, then the grid),
- * drawn white-on-wallpaper. Mirrors lock.swift: one square per 13-week quarter
- * rather than per week, because a week-resolution grid is under a point per cell
- * in this slot and the lock screen's vibrancy pass blurs it into a solid haze.
- */
-const LOCK_COLS = 32;
-const LOCK_ROWS = 10; // 320 squares
-const LOCK_WEEKS_PER_CELL = TOTAL_WEEKS / (LOCK_COLS * LOCK_ROWS); // 13
+/** Weeks of the current year that are done, and the year itself — mirrors yearStats() in index.swift. */
+export function yearStats(now: Date = new Date()) {
+  const year = now.getFullYear();
+  const start = new Date(year, 0, 1).getTime();
+  const dayOfYear = Math.floor((now.getTime() - start) / 86400000) + 1;
+  return { year, inkedWeeks: Math.min(52, Math.floor((dayOfYear - 1) / 7)) };
+}
 
-export function LockWidgetPreview({ width, lived }: { width: number; lived: number }) {
+/**
+ * The lock-screen widget: this year as 52 boxes, the same 26×2 strip the Year
+ * widget draws on the home screen, in lock-screen monochrome. Mirrors lock.swift.
+ * 52 boxes fit this slot legibly where the 4,160-week life grid does not.
+ */
+const LOCK_COLS = 26;
+const LOCK_ROWS = 2;
+
+export function LockWidgetPreview({ width }: { width: number }) {
   const s = width / LOCK_W;
-  const font = Math.max(6, 7.5 * s);
-  const gridH = 72 * s - font * 1.35 - 3 * s;
+  const font = Math.max(6, 8.5 * s);
+  const { year, inkedWeeks } = yearStats();
+  // 26 boxes across is what sets the cell size here, so the strip hugs its rows
+  const gapR = 0.3;
+  const cell = width / (LOCK_COLS + (LOCK_COLS - 1) * gapR);
+  const stripH = LOCK_ROWS * cell + (LOCK_ROWS - 1) * cell * gapR;
 
   const cells = useMemo(() => {
-    const gap = (1 / 3) * s; // one device pixel at 3×, as in lock.swift
-    const cell = Math.min((width - (LOCK_COLS - 1) * gap) / LOCK_COLS, (gridH - (LOCK_ROWS - 1) * gap) / LOCK_ROWS);
+    const gap = cell * gapR;
     const x0 = (width - (LOCK_COLS * cell + (LOCK_COLS - 1) * gap)) / 2;
-    const y0 = (gridH - (LOCK_ROWS * cell + (LOCK_ROWS - 1) * gap)) / 2;
+    const y0 = 0;
+    const current = Math.min(LOCK_COLS * LOCK_ROWS - 1, inkedWeeks);
 
-    const livedCell = Math.floor(lived / LOCK_WEEKS_PER_CELL);
     const out: React.ReactNode[] = [];
     for (let i = 0; i < LOCK_COLS * LOCK_ROWS; i++) {
-      const c = i % LOCK_COLS;
-      const r = Math.floor(i / LOCK_COLS);
-      const common = { x: x0 + c * (cell + gap), y: y0 + r * (cell + gap), width: cell, height: cell, rx: cell * 0.22 };
+      const common = {
+        x: x0 + (i % LOCK_COLS) * (cell + gap),
+        y: y0 + Math.floor(i / LOCK_COLS) * (cell + gap),
+        width: cell,
+        height: cell,
+        rx: cell * 0.25,
+      };
       out.push(
-        i === livedCell ? (
-          <Rect key={i} {...common} fill="none" stroke="#ffffff" strokeWidth={Math.max(0.5, cell * 0.2)} />
+        i === current ? (
+          <Rect key={i} {...common} fill="none" stroke="#ffffff" strokeWidth={Math.max(1, cell * 0.18)} />
         ) : (
-          <Rect key={i} {...common} fill="#ffffff" fillOpacity={i < livedCell ? 0.95 : 0.3} />
+          <Rect key={i} {...common} fill="#ffffff" fillOpacity={i < inkedWeeks ? 0.95 : 0.28} />
         )
       );
     }
     return out;
-  }, [width, gridH, s, lived]);
+  }, [width, cell, inkedWeeks]);
 
   // iOS draws lock-screen widgets in a translucent rounded container
   return (
     <View style={{ backgroundColor: 'rgba(255,255,255,0.13)', borderRadius: 18 * s, padding: 9 * s }}>
-      <View style={{ width, gap: 3 * s }}>
+      <View style={{ width, gap: 4 * s }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 * s }}>
-          <Mono size={font} spacing={0.1} color="#ffffff" medium numberOfLines={1} style={{ flexShrink: 1 }}>
-            LIFE IN WEEKS
-          </Mono>
-          <Mono size={font} spacing={0.04} color="#ffffff" medium numberOfLines={1}>
-            WK {fmt(lived + 1)} / {fmt(TOTAL_WEEKS)}
+          <Serif size={Math.max(11, 14 * s)} weight="semi" color="#ffffff">
+            {year}
+          </Serif>
+          <Mono size={font} spacing={0.06} color="#ffffff" medium numberOfLines={1}>
+            {inkedWeeks} / 52 WEEKS
           </Mono>
         </View>
-        <Svg width={width} height={gridH}>
+        <Svg width={width} height={stripH}>
           {cells}
         </Svg>
       </View>

@@ -30,12 +30,12 @@ export function WidgetModal() {
         {/* what the widgets actually look like */}
         <Panel>
           <HomeWidgetPreview width={homeW} lived={calc.lived} />
-          <Caption text="HOME SCREEN · LARGE" />
+          <Caption text="HOME SCREEN · YOUR WHOLE LIFE" />
         </Panel>
 
         <Panel>
-          <LockWidgetPreview width={lockW} lived={calc.lived} />
-          <Caption text="LOCK SCREEN · RECTANGULAR" />
+          <LockWidgetPreview width={lockW} />
+          <Caption text="LOCK SCREEN · THIS YEAR" />
         </Panel>
 
         <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 16, padding: 18, marginBottom: 14 }}>
