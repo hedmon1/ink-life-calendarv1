@@ -38,13 +38,22 @@ export function WidgetModal() {
           <Caption text="LOCK SCREEN · RECTANGULAR" />
         </Panel>
 
-        <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 16, padding: 18 }}>
+        <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 16, padding: 18, marginBottom: 14 }}>
           <Mono size={9} spacing={0.16} color={C.amber} style={{ marginBottom: 12 }}>
-            HOW TO ADD
+            ADD TO THE HOME SCREEN
           </Mono>
           <Step text="Hold a widget on your Home Screen → Edit Stack → ＋ (top left) → search “Ink”." />
           <Step text="No widgets yet? Hold empty Home Screen space → ＋ → search “Ink”." />
-          <Step text="Lock Screen: hold it → Customize → add Ink by the clock." />
+        </View>
+
+        <View style={{ backgroundColor: C.paper, borderWidth: 1, borderColor: C.cardLine, borderRadius: 16, padding: 18 }}>
+          <Mono size={9} spacing={0.16} color={C.amber} style={{ marginBottom: 12 }}>
+            ADD TO THE LOCK SCREEN
+          </Mono>
+          <Step text="Hold your Lock Screen until the wallpapers zoom out." />
+          <Step text="Tap Customize, then tap Lock Screen." />
+          <Step text="Tap the widget box under the clock." />
+          <Step text="Search “Ink” and tap the wide grid, then Done." />
         </View>
       </ScrollView>
     </ModalShell>

@@ -1,4 +1,9 @@
 // Product + business configuration. Everything a launch needs to tune lives here.
+//
+// v1 ships FREE with no accounts: the auth/paywall screens (AuthScreen,
+// PaywallScreen, store/auth.tsx, CloudSync) are no longer mounted anywhere, and
+// the trial/subscription values below are dormant. They're kept so the feature
+// can be switched back on later without rewriting it.
 
 /**
  * Free trial length — one month, counted from the FIRST APP OPEN (not account
@@ -27,8 +32,13 @@ export const REVENUECAT_IOS_KEY = '';
 /** RevenueCat entitlement identifier that unlocks the app. */
 export const RC_ENTITLEMENT = 'pro';
 
-/** Hosted legal pages — required by App Review. Replace with your hosted URLs. */
-export const PRIVACY_URL = 'https://github.com/hedmon1/ink-life-calendar/blob/main/store/PRIVACY_POLICY.md';
+/**
+ * Hosted pages — App Review requires a reachable privacy policy and support URL.
+ * These live in ../ink-landing; swap the host if you move to a custom domain.
+ */
+const SITE = 'https://inkcalendar.ink';
+export const PRIVACY_URL = `${SITE}/privacy.html`;
+export const SUPPORT_URL = `${SITE}/support.html`;
 export const TERMS_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 /** Apple's subscription-management page. */

@@ -87,7 +87,7 @@ export function ThisWeekScreen() {
             </Mono>
           </Pressable>
           <Pressable
-            onPress={() => nav.navigate('Account')}
+            onPress={() => nav.navigate('Settings')}
             hitSlop={10}
             style={{ width: 26, height: 26, borderRadius: 13, borderWidth: 1, borderColor: C.inputLine, alignItems: 'center', justifyContent: 'center' }}
           >

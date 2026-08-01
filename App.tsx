@@ -17,9 +17,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { CloudSync } from './src/components/CloudSync';
 import { RootNavigator } from './src/navigation/RootNavigator';
-import { AuthProvider, useAuth } from './src/store/auth';
 import { StoreProvider, useStore } from './src/store/store';
 import { C } from './src/theme';
 
@@ -30,12 +28,10 @@ const navTheme = {
 
 function Root() {
   const { ready } = useStore();
-  const { configured, authReady } = useAuth();
-  if (!ready || (configured && !authReady)) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
+  if (!ready) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
   return (
     <NavigationContainer theme={navTheme}>
       <RootNavigator />
-      <CloudSync />
     </NavigationContainer>
   );
 }
@@ -58,10 +54,8 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StoreProvider>
-          <AuthProvider>
-            <StatusBar style="light" />
-            <Root />
-          </AuthProvider>
+          <StatusBar style="light" />
+          <Root />
         </StoreProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

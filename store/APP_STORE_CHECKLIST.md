@@ -1,106 +1,132 @@
-# Ink — App Store / TestFlight launch checklist
+# Ink — App Store launch checklist
 
-Everything between you and an approved build. Items marked **(you)** need your accounts —
-no one else can do them. Code-side items are already done and noted as ✅.
+**v1 ships free, with no accounts and no in-app purchases.** That removes most of
+what App Review usually scrutinises: no paywall, no login, no account deletion
+requirement, no Paid Applications agreement, no data collection to declare.
+
+Items marked **(you)** need your Apple/EAS accounts — no one else can do them.
+Code-side items are done and marked ✅.
 
 ---
 
-## 1. Accounts you need (you)
+## 1. What you need
 
 | Account | Where | Why |
 |---|---|---|
-| Apple Developer Program ($99/yr) | developer.apple.com | TestFlight + App Store |
+| Apple Developer Program ($99/yr) | developer.apple.com | required to ship at all |
 | Expo / EAS | expo.dev | cloud builds & submit |
-| Firebase project | console.firebase.google.com | accounts + cloud backup |
-| RevenueCat (free tier) | app.revenuecat.com | subscription handling |
 
-## 2. Fill in the config (5 minutes once accounts exist)
+No Firebase, no RevenueCat, no banking/tax forms — a free app only needs the free
+Apple Developer Agreement, which is already accepted when you join.
 
-1. **Firebase** → project settings → add a *Web* app → copy the config into
-   `src/config/firebase.config.ts` (replaces the `TODO`s). Enable **Authentication →
-   Email/Password** and **Cloud Firestore**, then paste these security rules:
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /users/{uid} {
-         allow read, write: if request.auth != null && request.auth.uid == uid;
-       }
-     }
-   }
-   ```
-2. **RevenueCat** → add iOS app (bundle `com.ink.lifecalendar`) → copy the public
-   iOS SDK key (`appl_…`) into `REVENUECAT_IOS_KEY` in `src/config/appConfig.ts`.
-3. **Apple Team ID** → App Store Connect → Membership → put it in `app.json` under
-   `expo.ios.appleTeamId` (the widget/App Group signing needs it).
-4. **Founder window** → set `FOUNDER_DEADLINE_MS` in `src/config/appConfig.ts` to
-   30 days after your real launch day (currently 2026-08-23).
-5. Register the **App Group** `group.com.ink.lifecalendar` under Certificates,
-   Identifiers & Profiles → Identifiers (EAS can also do this for you on first build).
+## 2. Host the two required pages (you)
 
-## 3. The subscription product (you — App Store Connect)
+`../ink-landing/privacy.html` and `../ink-landing/support.html` are written and
+match the landing site. **inkcalendar.ink is already live on Netlify** — redeploy
+the `ink-landing` folder to that same site (dashboard → Deploys → drag the folder
+in, or `npx netlify-cli deploy --prod --dir=.` from `ink-landing`), then confirm:
 
-1. App Store Connect → My Apps → **＋ New App** (bundle `com.ink.lifecalendar`).
-2. Monetization → Subscriptions → create group “Ink Pro” → add auto-renewable
-   subscription **`ink_pro_monthly`**, 1 month, **$4.99**.
-3. Sign the **Paid Applications agreement** + banking/tax (Agreements, Tax, Banking).
-4. RevenueCat → Products: import `ink_pro_monthly`; Entitlements: create **`pro`**
-   and attach the product; Offerings: make a `default` offering with it as the
-   monthly package. (The app looks for entitlement `pro` — already wired. ✅)
-5. Subscriptions must also be attached to the app version in App Store Connect the
-   first time you submit.
+- Privacy policy → `https://inkcalendar.ink/privacy.html`
+- Support → `https://inkcalendar.ink/support.html`
 
-## 4. Build & TestFlight
+Note: a drag-and-drop deploy replaces the whole site, so the local `index.html`
+(which is ahead of what's live) goes up too — check you're happy with it first.
+
+Both URLs are wired into the app's About screen via `SITE` in
+`src/config/appConfig.ts`. ✅
+
+## 3. Create the app record (you — App Store Connect)
+
+1. App Store Connect → My Apps → **＋ New App**
+   - Platform iOS · Name **Ink** · Primary language English
+   - Bundle ID **com.ink.lifecalendar** (register it under Certificates,
+     Identifiers & Profiles first if it isn't in the dropdown)
+   - SKU: anything unique, e.g. `ink-life-calendar`
+2. Pricing and Availability → **Free**, all territories.
+3. App Information:
+   - Category: **Lifestyle** (secondary: Productivity)
+   - Age rating questionnaire → all "None" → results in **4+**
+   - Privacy Policy URL → your `/privacy.html`
+4. Also register the App Group `group.com.ink.lifecalendar` under Identifiers if
+   EAS hasn't already created it (it usually does on the first build).
+
+## 4. App Privacy questionnaire (you)
+
+Ink collects nothing, so this is the short path:
+
+> **Do you or your third-party partners collect data from this app?** → **No**
+
+That yields a "Data Not Collected" privacy label. This is accurate: no analytics,
+no ads, no accounts, no network calls of any kind — photos and entries never leave
+the device. ✅
+
+## 5. Store listing (you)
+
+- **Screenshots** — required: **6.9"** (iPhone 17 Pro Max / 16 Pro Max, 1320×2868).
+  6.5" is optional now; Apple scales the 6.9" set down. Take them in the simulator
+  (`⌘S` saves to Desktop) or from your own phone. Good five: the grid, This Week,
+  a locked memory with a photo, Goals, the widget on a Home Screen.
+- **Description** — say plainly that it's free, offline and account-free; that's a
+  selling point. Mention the home/lock-screen widgets.
+- **Keywords** — life calendar, weeks, memento mori, life in weeks, journal, habit,
+  time, mortality, planner.
+- **Support URL** → your `/support.html` · **Marketing URL** → the landing page.
+- **Promotional text** can be changed without a new build; the description can't.
+
+## 6. Build & submit
 
 ```bash
 cd ink-app
-npx eas-cli login          # (you)
-npx eas-cli build:configure   # links the project, writes projectId into app.json
-npx eas-cli build --platform ios --profile production
-npx eas-cli submit --platform ios --latest
+npx eas-cli@latest build --platform ios --profile production
+npx eas-cli@latest submit --platform ios --latest
 ```
-- TestFlight → add yourself as internal tester.
-- The `development` profile needs `npx expo install expo-dev-client` first (only if
-  you want a dev-client build; not needed for TestFlight).
 
-## 5. Review-guideline compliance — status
+Then in App Store Connect: the build appears under TestFlight in ~10–20 minutes
+(after processing). Test it yourself via TestFlight first, then attach that build
+to the **1.0 version** page and hit **Add for Review** → **Submit**.
+
+Answer "Does this app use encryption?" → **No** (`usesNonExemptEncryption: false`
+is already set in app.json ✅).
+
+## 7. Review-guideline status
 
 | Guideline | Requirement | Status |
 |---|---|---|
-| 3.1.1 | Digital unlock must use Apple IAP | ✅ RevenueCat / StoreKit only — no outside payments |
-| 3.1.2 | Paywall shows price, term, auto-renew language, Privacy + Terms links | ✅ PaywallScreen |
-| 3.1.2 | Restore Purchases button | ✅ Paywall + Account |
-| 5.1.1(v) | In-app **account deletion** that removes server data | ✅ Account → Delete Account (re-auth → Firestore wipe → auth delete) |
-| 5.1.1 | Don’t force signup before the app is usable | ✅ onboarding runs first; account gate only after (and only when Firebase is configured) |
-| 4.8 | Sign in with Apple | **Not required** — only email/password is offered (no third-party login). If you ever add Google login, Apple login becomes mandatory. |
-| 5.1.2 | Privacy policy URL | ⚠️ **(you)** host `store/PRIVACY_POLICY.md` somewhere public (GitHub works) and put the URL in App Store Connect **and** `PRIVACY_URL` in appConfig.ts |
-| — | Terms (EULA) | ✅ uses Apple’s standard EULA link |
-| 2.1 | App completeness / reviewer access | **(you)** in App Review notes: provide a demo login (create one yourself: e.g. review@yourdomain + password). The one-month trial also means a fresh reviewer install has full access. |
-| 2.3.10 | Accurate metadata | **(you)** screenshots (6.9" + 6.5"), description, keywords. Mention the founding-member offer in the description if you keep it. |
-| 5.1.1 | App Privacy questionnaire | **(you)** declare: **Email address** (account), **User content** (photos/journal — stored on device; text backed up to your servers), **Purchases**. No tracking, no ads → “Data not used to track you.” |
-| — | Export compliance | ✅ `usesNonExemptEncryption: false` already in app.json |
-| — | App icon | ✅ `assets/icon.png` (1024×1024, generated) — replace anytime with a nicer one |
-| — | Push notifications | ✅ local notifications only — no APNs key needed |
+| 2.1 | App completeness, reviewer can use everything | ✅ free, no login — reviewer just opens it |
+| 2.3.10 | Accurate metadata | **(you)** screenshots + description |
+| 5.1.1 | Don't force signup | ✅ there is no signup |
+| 5.1.1(v) | In-app account deletion | **N/A** — no accounts exist |
+| 5.1.2 | Privacy policy URL | **(you)** host it (§2), paste URL in §3 |
+| 3.1.1 | IAP for digital unlocks | **N/A** — nothing is sold |
+| 4.8 | Sign in with Apple | **N/A** — no third-party login |
+| 4.2 | Minimum functionality | ✅ journal + grid + goals + widgets |
+| — | Export compliance | ✅ `usesNonExemptEncryption: false` |
+| — | App icon | ✅ `assets/icon.png` 1024×1024 — replace with a nicer one any time |
+| — | Push notifications | ✅ local only, no APNs key needed |
+| — | Photo permission strings | ✅ `NSPhotoLibraryUsageDescription` in app.json |
 
-## 6. How the membership logic works (already built ✅)
+## 8. App Review notes (paste into App Store Connect)
 
-- **Founding members**: accounts created on/before `FOUNDER_DEADLINE_MS` get
-  `founder: true` on their Firestore profile → app is free for life, no paywall ever.
-- **Everyone after**: one-month trial from the first app open (`installedAt`, with the
-  account's server-side `createdAt` as a backstop so reinstalls can't reset it), then the app
-  locks behind the Paywall until `pro` (via RevenueCat) is active.
-- **No Firebase config** → local dev mode: no gate, no trial (what you have today).
+> Ink is a life calendar: your life drawn as 4,160 weekly squares, with a weekly
+> check-in you can attach a sentence, a rating and photos to. The app is free,
+> requires no account and works fully offline — no login is needed to review it.
+> To see the widgets: add "Ink — Life in Weeks" from the widget gallery (large size
+> for the Home Screen, rectangular for the Lock Screen).
 
-Small print worth knowing:
-- The trial clock is the earlier of the local `installedAt` (synced to the cloud
-  backup) and the profile's server-side `createdAt` — so deleting and reinstalling
-  the app does **not** reset it once an account exists.
-- Photos are stored on-device; account backup covers text/goals/settings (photo
-  binaries are not uploaded in v1 — say so in your privacy policy, already drafted).
+## 9. Dormant code (not shipped)
 
-## 7. Suggested App Review notes (paste into App Store Connect)
+Accounts, cloud backup and the $4.99 subscription were built earlier and still
+exist in the repo, but nothing mounts them any more: `store/auth.tsx`,
+`components/CloudSync.tsx`, `screens/AuthScreen.tsx`, `screens/PaywallScreen.tsx`,
+`lib/firebase.ts`, `lib/purchases.ts`. Metro doesn't bundle unreferenced modules,
+so none of it ships. To bring it back: re-wrap `<AuthProvider>` + `<CloudSync/>` in
+App.tsx and restore the gates in `RootNavigator`. Turning it on later means a new
+App Store Connect subscription product, the Paid Apps agreement and a fuller
+privacy label.
 
-> Ink is a life-calendar journal. New users get full access for one month, after
-> which the Ink Pro subscription ($4.99/month, auto-renewable) is required.
-> Demo account: <email> / <password>. Widgets require adding “Ink — Life in Weeks”
-> from the widget gallery.
+## 10. After approval
+
+- Updates: bump nothing by hand — `eas.json` has `autoIncrement`; just build,
+  submit, and add release notes on a new version page.
+- Phased release (7-day ramp) is a toggle on the version page; useful for a first
+  launch so a bad bug doesn't hit everyone at once.

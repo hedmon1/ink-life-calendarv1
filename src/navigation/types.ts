@@ -7,9 +7,7 @@ export type RootStackParamList = {
   Tutorial: undefined;
   NewGoal: undefined;
   Widgets: undefined;
-  Auth: undefined;
-  Account: undefined;
-  Paywall: undefined;
+  Settings: undefined;
 };
 
 export type TabParamList = {

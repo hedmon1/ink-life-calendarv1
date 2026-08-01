@@ -71,52 +71,58 @@ export function HomeWidgetPreview({ width, lived }: { width: number; lived: numb
   );
 }
 
-/** The lock-screen widget: one square per year, in the system's white-on-wallpaper style. */
+/**
+ * The lock-screen widget: the same 52×80 grid as the home widget, scaled into the
+ * accessory slot and drawn white-on-wallpaper. Mirrors lock.swift — the grid fills
+ * the slot's height, so a week is barely a point across and reads as texture.
+ */
 export function LockWidgetPreview({ width, lived }: { width: number; lived: number }) {
   const s = width / LOCK_W;
-  const livedYears = Math.floor(lived / WEEKS_PER_YEAR);
-  const cols = 40;
-  const rows = 2;
-  const gap = Math.max(0.75, s);
-  const barH = 16 * s;
-  const cw = (width - (cols - 1) * gap) / cols;
-  const ch = (barH - (rows - 1) * gap) / rows;
+  const boxH = 72 * s;
 
   const cells = useMemo(() => {
+    // lock.swift pins the gap to one device pixel (1/3 pt at 3×); match that ratio
+    const gap = (1 / 3) * s;
+    const cell = (boxH - (LIFE_YEARS - 1) * gap) / LIFE_YEARS;
+    const gridW = WEEKS_PER_YEAR * cell + (WEEKS_PER_YEAR - 1) * gap;
+
     const out: React.ReactNode[] = [];
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const yearIndex = r * cols + c;
-        out.push(
-          <Rect
-            key={yearIndex}
-            x={c * (cw + gap)}
-            y={r * (ch + gap)}
-            width={cw}
-            height={ch}
-            rx={Math.min(cw, ch) * 0.25}
-            fill="#ffffff"
-            fillOpacity={yearIndex < livedYears ? 0.95 : 0.22}
-          />
-        );
-      }
+    for (let i = 0; i < TOTAL_WEEKS; i++) {
+      const c = i % WEEKS_PER_YEAR;
+      const r = Math.floor(i / WEEKS_PER_YEAR);
+      out.push(
+        <Rect
+          key={i}
+          x={c * (cell + gap)}
+          y={r * (cell + gap)}
+          width={cell}
+          height={cell}
+          fill="#ffffff"
+          fillOpacity={i < lived ? 0.9 : i === lived ? 1 : 0.25}
+        />
+      );
     }
-    return out;
-  }, [cw, ch, gap, livedYears]);
+    return { nodes: out, w: gridW };
+  }, [boxH, s, lived]);
 
   // iOS draws lock-screen widgets in a translucent rounded container
   return (
-    <View style={{ backgroundColor: 'rgba(255,255,255,0.13)', borderRadius: 18 * s, padding: 10 * s }}>
-      <View style={{ width, gap: 3 * s }}>
-        <Mono size={Math.max(7, 9 * s)} spacing={0.12} color="#ffffff" medium>
-          LIFE IN WEEKS
-        </Mono>
-        <Svg width={width} height={barH}>
-          {cells}
+    <View style={{ backgroundColor: 'rgba(255,255,255,0.13)', borderRadius: 18 * s, padding: 9 * s }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 * s }}>
+        <Svg width={cells.w} height={boxH}>
+          {cells.nodes}
         </Svg>
-        <Mono size={Math.max(7, 9 * s)} spacing={0.08} color="rgba(255,255,255,0.65)">
-          WK {fmt(lived + 1)} / {fmt(TOTAL_WEEKS)}
-        </Mono>
+        <View style={{ gap: 1 * s }}>
+          <Mono size={Math.max(7, 8.5 * s)} spacing={0.12} color="#ffffff" medium>
+            LIFE IN WEEKS
+          </Mono>
+          <Mono size={Math.max(10, 13 * s)} spacing={0.04} color="#ffffff" medium>
+            WK {fmt(lived + 1)}
+          </Mono>
+          <Mono size={Math.max(7, 8.5 * s)} spacing={0.08} color="rgba(255,255,255,0.65)">
+            OF {fmt(TOTAL_WEEKS)}
+          </Mono>
+        </View>
       </View>
     </View>
   );
