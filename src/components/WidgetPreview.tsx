@@ -72,29 +72,34 @@ export function HomeWidgetPreview({ width, lived }: { width: number; lived: numb
 }
 
 /**
- * The lock-screen widget: the same 52×80 grid as the home widget, scaled into the
- * accessory slot and drawn white-on-wallpaper. Mirrors lock.swift — the grid fills
- * the slot's height, so a week is barely a point across and reads as texture.
+ * The lock-screen widget — same shape as the home one (header row, then the grid),
+ * drawn white-on-wallpaper. Mirrors lock.swift, including the 104×40 reflow: the
+ * accessory slot is wide and short, so two years per row keeps the cells big
+ * enough to read as squares instead of smearing into a bar.
  */
+const LOCK_COLS = WEEKS_PER_YEAR * 2; // 104
+const LOCK_ROWS = LIFE_YEARS / 2; // 40
+
 export function LockWidgetPreview({ width, lived }: { width: number; lived: number }) {
   const s = width / LOCK_W;
-  const boxH = 72 * s;
+  const font = Math.max(6, 7.5 * s);
+  const gridH = 72 * s - font * 1.35 - 3 * s;
 
   const cells = useMemo(() => {
-    // lock.swift pins the gap to one device pixel (1/3 pt at 3×); match that ratio
-    const gap = (1 / 3) * s;
-    const cell = (boxH - (LIFE_YEARS - 1) * gap) / LIFE_YEARS;
-    const gridW = WEEKS_PER_YEAR * cell + (WEEKS_PER_YEAR - 1) * gap;
+    const gap = (1 / 3) * s; // one device pixel at 3×, as in lock.swift
+    const cell = Math.min((width - (LOCK_COLS - 1) * gap) / LOCK_COLS, (gridH - (LOCK_ROWS - 1) * gap) / LOCK_ROWS);
+    const x0 = (width - (LOCK_COLS * cell + (LOCK_COLS - 1) * gap)) / 2;
+    const y0 = (gridH - (LOCK_ROWS * cell + (LOCK_ROWS - 1) * gap)) / 2;
 
     const out: React.ReactNode[] = [];
     for (let i = 0; i < TOTAL_WEEKS; i++) {
-      const c = i % WEEKS_PER_YEAR;
-      const r = Math.floor(i / WEEKS_PER_YEAR);
+      const c = i % LOCK_COLS;
+      const r = Math.floor(i / LOCK_COLS);
       out.push(
         <Rect
           key={i}
-          x={c * (cell + gap)}
-          y={r * (cell + gap)}
+          x={x0 + c * (cell + gap)}
+          y={y0 + r * (cell + gap)}
           width={cell}
           height={cell}
           fill="#ffffff"
@@ -102,27 +107,24 @@ export function LockWidgetPreview({ width, lived }: { width: number; lived: numb
         />
       );
     }
-    return { nodes: out, w: gridW };
-  }, [boxH, s, lived]);
+    return out;
+  }, [width, gridH, s, lived]);
 
   // iOS draws lock-screen widgets in a translucent rounded container
   return (
     <View style={{ backgroundColor: 'rgba(255,255,255,0.13)', borderRadius: 18 * s, padding: 9 * s }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 * s }}>
-        <Svg width={cells.w} height={boxH}>
-          {cells.nodes}
-        </Svg>
-        <View style={{ gap: 1 * s }}>
-          <Mono size={Math.max(7, 8.5 * s)} spacing={0.12} color="#ffffff" medium>
+      <View style={{ width, gap: 3 * s }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 * s }}>
+          <Mono size={font} spacing={0.1} color="#ffffff" medium numberOfLines={1} style={{ flexShrink: 1 }}>
             LIFE IN WEEKS
           </Mono>
-          <Mono size={Math.max(10, 13 * s)} spacing={0.04} color="#ffffff" medium>
-            WK {fmt(lived + 1)}
-          </Mono>
-          <Mono size={Math.max(7, 8.5 * s)} spacing={0.08} color="rgba(255,255,255,0.65)">
-            OF {fmt(TOTAL_WEEKS)}
+          <Mono size={font} spacing={0.04} color="#ffffff" medium numberOfLines={1}>
+            WK {fmt(lived + 1)} / {fmt(TOTAL_WEEKS)}
           </Mono>
         </View>
+        <Svg width={width} height={gridH}>
+          {cells}
+        </Svg>
       </View>
     </View>
   );

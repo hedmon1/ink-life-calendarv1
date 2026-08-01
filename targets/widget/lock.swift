@@ -24,20 +24,21 @@ struct InkLockView: View {
       .gaugeStyle(.accessoryCircularCapacity)
 
     case .accessoryRectangular:
-      HStack(spacing: 8) {
-        LockGridCanvas(lived: lived)
-          .aspectRatio(CGFloat(Ink.weeksPerYear) / CGFloat(Ink.lifeYears), contentMode: .fit)
-        VStack(alignment: .leading, spacing: 1) {
+      // same shape as the home-screen widget: header row on top, grid filling the rest
+      VStack(alignment: .leading, spacing: 3) {
+        HStack(spacing: 5) {
           Text("LIFE IN WEEKS")
-            .font(.system(size: 8.5, weight: .semibold, design: .monospaced))
+            .font(.system(size: 7.5, weight: .semibold, design: .monospaced))
             .widgetAccentable()
-          Text("WK \((lived + 1).formatted())")
-            .font(.system(size: 13, weight: .medium, design: .monospaced))
-          Text("OF \(Ink.totalWeeks.formatted())")
-            .font(.system(size: 8.5, weight: .regular, design: .monospaced))
-            .foregroundColor(.secondary)
+          Spacer(minLength: 4)
+          Text("WK \((lived + 1).formatted()) / \(Ink.totalWeeks.formatted())")
+            .font(.system(size: 7.5, weight: .medium, design: .monospaced))
         }
-        Spacer(minLength: 0)
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+
+        LockGridCanvas(lived: lived)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
 
     default:
@@ -47,20 +48,25 @@ struct InkLockView: View {
   }
 }
 
-/// The full 4,160-week lattice, drawn as crisply as the lock screen allows.
+/// The same 4,160 weeks as the home-screen widget, reflowed for the lock slot.
 ///
-/// 80 rows have to fit in ~72pt, so a row is only ~1pt tall. The gap is pinned to
-/// exactly one device pixel — the smallest separation that still renders as a line
-/// instead of blurring away — and the cells take whatever is left. Cells are drawn
-/// as two batched paths rather than 4,160 separate fills.
+/// The accessory slot is ~160×72pt — wide and short — while the home grid is tall
+/// (52 × 80). Kept at 52 across, each week would be under a point and the lattice
+/// would smear into a grey bar. Two years per row (104 × 40) fills the slot's
+/// shape instead, roughly doubling the cell size so it still reads as a grid of
+/// squares. Gaps are pinned to one device pixel, the finest that renders as a line.
+/// Cells are drawn as two batched paths rather than 4,160 separate fills.
 struct LockGridCanvas: View {
   let lived: Int
   @Environment(\.displayScale) private var scale
 
+  static let cols = Ink.weeksPerYear * 2 // 104 — two years per row
+  static let rows = Ink.lifeYears / 2 // 40
+
   var body: some View {
     Canvas { ctx, size in
-      let cols = Ink.weeksPerYear
-      let rows = Ink.lifeYears
+      let cols = Self.cols
+      let rows = Self.rows
       let gap = 1.0 / max(scale, 1)
       let cell = min(
         (size.width - CGFloat(cols - 1) * gap) / CGFloat(cols),
@@ -98,7 +104,7 @@ struct LockGridCanvas: View {
       ctx.fill(pencil, with: .color(.white.opacity(0.25)))
       ctx.fill(inked, with: .color(.white.opacity(0.9)))
       if let r = current {
-        // this week: the brightest mark, widened so it stays visible at 1pt
+        // this week: the brightest mark, widened so it stays visible at this size
         ctx.fill(Path(r.insetBy(dx: -gap, dy: -gap)), with: .color(.white))
       }
     }
