@@ -73,12 +73,13 @@ export function HomeWidgetPreview({ width, lived }: { width: number; lived: numb
 
 /**
  * The lock-screen widget — same shape as the home one (header row, then the grid),
- * drawn white-on-wallpaper. Mirrors lock.swift, including the 104×40 reflow: the
- * accessory slot is wide and short, so two years per row keeps the cells big
- * enough to read as squares instead of smearing into a bar.
+ * drawn white-on-wallpaper. Mirrors lock.swift: one square per 13-week quarter
+ * rather than per week, because a week-resolution grid is under a point per cell
+ * in this slot and the lock screen's vibrancy pass blurs it into a solid haze.
  */
-const LOCK_COLS = WEEKS_PER_YEAR * 2; // 104
-const LOCK_ROWS = LIFE_YEARS / 2; // 40
+const LOCK_COLS = 32;
+const LOCK_ROWS = 10; // 320 squares
+const LOCK_WEEKS_PER_CELL = TOTAL_WEEKS / (LOCK_COLS * LOCK_ROWS); // 13
 
 export function LockWidgetPreview({ width, lived }: { width: number; lived: number }) {
   const s = width / LOCK_W;
@@ -91,20 +92,18 @@ export function LockWidgetPreview({ width, lived }: { width: number; lived: numb
     const x0 = (width - (LOCK_COLS * cell + (LOCK_COLS - 1) * gap)) / 2;
     const y0 = (gridH - (LOCK_ROWS * cell + (LOCK_ROWS - 1) * gap)) / 2;
 
+    const livedCell = Math.floor(lived / LOCK_WEEKS_PER_CELL);
     const out: React.ReactNode[] = [];
-    for (let i = 0; i < TOTAL_WEEKS; i++) {
+    for (let i = 0; i < LOCK_COLS * LOCK_ROWS; i++) {
       const c = i % LOCK_COLS;
       const r = Math.floor(i / LOCK_COLS);
+      const common = { x: x0 + c * (cell + gap), y: y0 + r * (cell + gap), width: cell, height: cell, rx: cell * 0.22 };
       out.push(
-        <Rect
-          key={i}
-          x={x0 + c * (cell + gap)}
-          y={y0 + r * (cell + gap)}
-          width={cell}
-          height={cell}
-          fill="#ffffff"
-          fillOpacity={i < lived ? 0.9 : i === lived ? 1 : 0.25}
-        />
+        i === livedCell ? (
+          <Rect key={i} {...common} fill="none" stroke="#ffffff" strokeWidth={Math.max(0.5, cell * 0.2)} />
+        ) : (
+          <Rect key={i} {...common} fill="#ffffff" fillOpacity={i < livedCell ? 0.95 : 0.3} />
+        )
       );
     }
     return out;

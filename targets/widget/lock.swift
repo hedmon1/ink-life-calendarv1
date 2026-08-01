@@ -48,25 +48,29 @@ struct InkLockView: View {
   }
 }
 
-/// The same 4,160 weeks as the home-screen widget, reflowed for the lock slot.
+/// The life grid at the coarsest useful resolution: one square per quarter.
 ///
-/// The accessory slot is ~160×72pt — wide and short — while the home grid is tall
-/// (52 × 80). Kept at 52 across, each week would be under a point and the lattice
-/// would smear into a grey bar. Two years per row (104 × 40) fills the slot's
-/// shape instead, roughly doubling the cell size so it still reads as a grid of
-/// squares. Gaps are pinned to one device pixel, the finest that renders as a line.
-/// Cells are drawn as two batched paths rather than 4,160 separate fills.
+/// The accessory slot gives the grid roughly 162×53pt. One square per *week*
+/// (4,160 of them) works out to 0.9pt each — under three device pixels — and the
+/// lock screen's vibrancy pass blurs that into a solid haze, which is what it did
+/// on device. One square per quarter (13 weeks) is 320 squares at ~4.7pt, which
+/// survives the blur and still reads as the same lattice: Ink already groups the
+/// main grid into 13-week quarters, so a square here is exactly one of those
+/// blocks, and a row is 8 years. Gaps are one device pixel; cells are batched into
+/// two paths rather than drawn individually.
 struct LockGridCanvas: View {
   let lived: Int
   @Environment(\.displayScale) private var scale
 
-  static let cols = Ink.weeksPerYear * 2 // 104 — two years per row
-  static let rows = Ink.lifeYears / 2 // 40
+  static let cols = 32
+  static let rows = 10 // 320 squares
+  static let weeksPerCell = Ink.totalWeeks / (cols * rows) // 13 — one quarter
 
   var body: some View {
     Canvas { ctx, size in
       let cols = Self.cols
       let rows = Self.rows
+      let livedCell = lived / Self.weeksPerCell
       let gap = 1.0 / max(scale, 1)
       let cell = min(
         (size.width - CGFloat(cols - 1) * gap) / CGFloat(cols),
@@ -83,6 +87,7 @@ struct LockGridCanvas: View {
       var pencil = Path()
       var current: CGRect?
 
+      let radius = cell * 0.22
       for i in 0..<(cols * rows) {
         let c = i % cols
         let r = i / cols
@@ -92,20 +97,26 @@ struct LockGridCanvas: View {
           width: cell,
           height: cell
         )
-        if i < lived {
-          inked.addRect(rect)
-        } else if i == lived {
+        let corner = CGSize(width: radius, height: radius)
+        if i < livedCell {
+          inked.addRoundedRect(in: rect, cornerSize: corner)
+        } else if i == livedCell {
           current = rect
         } else {
-          pencil.addRect(rect)
+          pencil.addRoundedRect(in: rect, cornerSize: corner)
         }
       }
 
-      ctx.fill(pencil, with: .color(.white.opacity(0.25)))
-      ctx.fill(inked, with: .color(.white.opacity(0.9)))
+      // opacity carries the contrast — the lock screen strips colour
+      ctx.fill(pencil, with: .color(.white.opacity(0.3)))
+      ctx.fill(inked, with: .color(.white.opacity(0.95)))
       if let r = current {
-        // this week: the brightest mark, widened so it stays visible at this size
-        ctx.fill(Path(r.insetBy(dx: -gap, dy: -gap)), with: .color(.white))
+        // the quarter you're living in — outlined, exactly as the app draws this week
+        ctx.stroke(
+          Path(roundedRect: r, cornerRadius: radius),
+          with: .color(.white),
+          lineWidth: max(0.5, cell * 0.2)
+        )
       }
     }
   }
